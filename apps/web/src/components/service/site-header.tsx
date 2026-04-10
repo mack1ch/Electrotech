@@ -2,8 +2,16 @@
 
 import { ChevronDown, LayoutGrid, QrCode, Search } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@electrotech/ui';
 import { CityPicker } from '@/components/city-picker';
+
 export function SiteHeader() {
+  const pathname = usePathname() ?? '';
+  const isSuppliersSection = pathname.startsWith('/suppliers');
+  const catalogLabel = isSuppliersSection ? 'Поставщики' : 'Товары';
+  const searchFormAction = isSuppliersSection ? '/suppliers' : '/search';
+
   return (
     <header className="sticky top-0 z-50 border-b border-black/10 bg-white lg:static lg:z-auto lg:border-neutral-200">
       {/* Мобильная полоса: компактная высота */}
@@ -53,25 +61,31 @@ export function SiteHeader() {
           </Link>
 
           <form
-            action="/search"
+            action={searchFormAction}
             method="get"
             className="flex min-h-10 min-w-0 flex-1 items-center gap-1.5 rounded-lg border-2 border-brand px-1.5 py-1 sm:min-h-11 sm:px-2 sm:py-1.5"
           >
             <details className="group relative shrink-0">
               <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md bg-brand-muted px-3 py-2 text-xs font-semibold text-brand sm:text-sm [&::-webkit-details-marker]:hidden">
-                Товары
+                {catalogLabel}
                 <ChevronDown className="size-4 text-brand" strokeWidth={1.75} aria-hidden />
               </summary>
               <div className="absolute left-0 top-full z-20 mt-1 min-w-[160px] rounded-md border border-neutral-200 bg-white py-1 shadow-md">
                 <Link
                   href="/search"
-                  className="block px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+                  className={cn(
+                    'block px-3 py-2 text-sm hover:bg-neutral-50',
+                    !isSuppliersSection ? 'bg-neutral-50 font-semibold text-ink' : 'text-ink',
+                  )}
                 >
                   Товары
                 </Link>
                 <Link
                   href="/suppliers"
-                  className="block px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+                  className={cn(
+                    'block px-3 py-2 text-sm hover:bg-neutral-50',
+                    isSuppliersSection ? 'bg-neutral-50 font-semibold text-ink' : 'text-ink',
+                  )}
                 >
                   Поставщики
                 </Link>
