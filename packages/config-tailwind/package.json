@@ -1,0 +1,12 @@
+{
+  "name": "@electrotech/config-tailwind",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./preset.cjs",
+    "./preset": "./preset.cjs"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@electrotech/utils",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@electrotech/config-eslint": "workspace:*",
+    "@electrotech/config-typescript": "workspace:*",
+    "eslint": "^9.21.0",
+    "typescript": "^5.8.2"
+  }
+}

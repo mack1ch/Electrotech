@@ -1,0 +1,88 @@
+# Демо-стенд на VPS: web + API + Postgres (+ Redis на будущее).
+# Порты по умолчанию 18080 (сайт) и 18081 (API) — реже конфликтуют с 3000/4000/80.
+# Скопируйте .env.vps.example → .env рядом с этим файлом, подставьте хост и пароли,
+# затем: docker compose -f docker-compose.vps.yml up -d --build
+#
+# Первый запуск: пустой том Postgres → схема через TYPEORM_SYNC=true → демо-данные из сида.
+# Повторно обнулить каталог: CATALOG_DEMO_RESEED=true (осторожно в бою).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-electrotech}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-electrotech_vps_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-electrotech}
+    volumes:
+      - electrotech_pg_vps:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-electrotech} -d ${POSTGRES_DB:-electrotech}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 8
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.prod
+    ports:
+      - '${VPS_API_PORT:-18081}:4000'
+    environment:
+      NODE_ENV: production
+      API_PORT: '4000'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-electrotech}:${POSTGRES_PASSWORD:-electrotech_vps_change_me}@postgres:5432/${POSTGRES_DB:-electrotech}
+      REDIS_URL: redis://redis:6379
+      WEB_ORIGINS: ${WEB_ORIGINS:-http://127.0.0.1:18080,http://localhost:18080}
+      # Демо: создать таблицы без миграций (для продакшена позже — миграции и TYPEORM_SYNC=false)
+      TYPEORM_SYNC: 'true'
+      # Первый старт с пустой БД: сид и так выполнится. true = очистить каталог и залить моки снова
+      CATALOG_DEMO_RESEED: '${CATALOG_DEMO_RESEED:-false}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(\"http://127.0.0.1:4000/health\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:18081}
+    ports:
+      - '${VPS_WEB_PORT:-18080}:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  electrotech_pg_vps:

@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --color-brand: #264b82;
+  --color-brand-muted: #e5efff;
+  --color-ink: #0a0a0a;
+  --color-ink-secondary: #222222;
+  --color-text-muted: #8d8d8d;
+}
+
+body {
+  @apply min-h-screen bg-white text-ink antialiased;
+}
+
+@layer utilities {
+  /**
+   * Тонкий заметный скролл для панели фильтров (Firefox + WebKit).
+   */
+  .scrollbar-filters {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-brand) 42%, transparent) rgba(10, 10, 10, 0.06);
+  }
+
+  .scrollbar-filters::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .scrollbar-filters::-webkit-scrollbar-track {
+    margin: 6px 0;
+    background: rgba(10, 10, 10, 0.05);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-filters::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: color-mix(in srgb, var(--color-brand) 38%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-filters::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--color-brand) 58%, transparent);
+  }
+}

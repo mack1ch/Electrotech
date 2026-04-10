@@ -1,0 +1,28 @@
+{
+  "name": "electrotech",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Электротехника — monorepo foundation (web, supplier, API)",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=web",
+    "dev:supplier": "turbo dev --filter=supplier",
+    "dev:api": "turbo dev --filter=api",
+    "dev:apps": "turbo dev --filter=web --filter=api --filter=supplier",
+    "dev:db": "docker compose up -d postgres redis",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2"
+  }
+}
