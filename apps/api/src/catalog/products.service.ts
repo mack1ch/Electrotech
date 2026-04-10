@@ -128,10 +128,15 @@ export class ProductsService {
     const sortKey =
       query.sort && SORT_KEYS.has(query.sort) ? query.sort : 'price_asc';
 
+    // TypeORM в orderBy не принимает CAST(...): парсер принимает «CAST(p» за alias. Сортируем по addSelect-алиасу.
+    if (sortKey === 'price_asc' || sortKey === 'price_desc') {
+      qb.addSelect('CAST(p.price AS DECIMAL(14,2))', 'price_sort');
+    }
+
     switch (sortKey) {
       case 'price_desc':
         qb.orderBy('p.priceOnRequest', 'ASC')
-          .addOrderBy('CAST(p.price AS DECIMAL)', 'DESC')
+          .addOrderBy('price_sort', 'DESC')
           .addOrderBy('p.name', 'ASC');
         break;
       case 'stock_asc':
@@ -148,7 +153,7 @@ export class ProductsService {
         break;
       default:
         qb.orderBy('p.priceOnRequest', 'ASC')
-          .addOrderBy('CAST(p.price AS DECIMAL)', 'ASC')
+          .addOrderBy('price_sort', 'ASC')
           .addOrderBy('p.name', 'ASC');
     }
 
