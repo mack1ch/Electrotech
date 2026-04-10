@@ -74,6 +74,7 @@ services:
       dockerfile: apps/web/Dockerfile.prod
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:18081}
+        NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:-}
     ports:
       - '${VPS_WEB_PORT:-18080}:3000'
     environment:

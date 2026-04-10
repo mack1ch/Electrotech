@@ -89,6 +89,10 @@ docker compose up --build
 
 `NEXT_PUBLIC_*` вшивается при **сборке** образа `web`; после смены URL API пересоберите: `docker compose -f docker-compose.vps.yml build web --no-cache`.
 
+**Если в логах web «Failed to find Server Action» или в браузере пусто после деплоя:** в `.env` задайте `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` (один раз: `openssl rand -base64 32`), пересоберите `web`. В nginx к прокси на `127.0.0.1:18080` добавьте директивы из [deploy/nginx-next-location-snippet.conf](deploy/nginx-next-location-snippet.conf) (в частности `proxy_buffering off`). У пользователей — жёсткое обновление страницы (Ctrl+Shift+R) или режим инкогнито.
+
+Проверка HTML с сервера: `curl -sS https://ваш-домен/ | head -5` — должна быть строка с `<!DOCTYPE` или `<html`.
+
 ## Скрипты в корне
 
 | Команда               | Действие                                                        |

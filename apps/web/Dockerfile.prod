@@ -9,6 +9,12 @@ WORKDIR /repo
 
 ARG NEXT_PUBLIC_API_URL=http://127.0.0.1:18081
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# Один и тот же ключ между пересборками образа — иначе после deploy ловят «Failed to find Server Action»
+# (старый JS в браузере vs новый сервер). Задаётся build-arg из .env на VPS.
+ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=
+ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY package.json pnpm-workspace.yaml turbo.json pnpm-lock.yaml ./
