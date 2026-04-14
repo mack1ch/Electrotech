@@ -120,7 +120,7 @@ export function SuppliersResultsTable({
             <div className={`${tdClass} break-words text-base font-normal leading-normal text-ink`} role="cell">
               {dash(s.warehouseCitiesLine)}
             </div>
-            <div className={`${tdClass} text-center text-sm font-semibold leading-normal text-brand`} role="cell">
+            <div className={`${tdClass} text-sm font-semibold leading-normal text-brand`} role="cell">
               {s.website ? (
                 <a
                   href={s.website.startsWith('http') ? s.website : `https://${s.website}`}
@@ -134,7 +134,7 @@ export function SuppliersResultsTable({
                 '—'
               )}
             </div>
-            <div className={`${tdClass} break-words text-center text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
+            <div className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
               {dash(s.phone)}
             </div>
             <div className={`${tdClass} text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
