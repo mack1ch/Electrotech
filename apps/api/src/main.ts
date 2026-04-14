@@ -2,7 +2,8 @@ import 'reflect-metadata';
 import { createHash } from 'node:crypto';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import type { INestApplication } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import type { RequestHandler } from 'express';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { Category } from './catalog/entities/category.entity';
@@ -23,14 +24,11 @@ function esmDynamicImport(specifier: string): Promise<unknown> {
   return new Function('specifier', 'return import(specifier)')(specifier) as Promise<unknown>;
 }
 
-async function setupAdminPanel(app: INestApplication): Promise<void> {
+async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
   const dataSource = app.get(DataSource);
   /* AdminJS @adminjs/typeorm опирается на Active Record (`getRepository` на классе сущности). */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- BaseEntity.useDataSource из typeorm
   Supplier.useDataSource(dataSource);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   Category.useDataSource(dataSource);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   Product.useDataSource(dataSource);
 
   const [adminJsMod, typeormMod, expressMod] = await Promise.all([
@@ -78,12 +76,14 @@ async function setupAdminPanel(app: INestApplication): Promise<void> {
     },
   );
 
-  app.use('/admin', router);
+  // Явно вешаем на нативный Express: так маршрут гарантированно в том же стеке, что и публичный API (важно за nginx).
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use('/admin', router as RequestHandler);
 }
 
 async function bootstrap(): Promise<void> {
   const bootstrapLogger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
 
