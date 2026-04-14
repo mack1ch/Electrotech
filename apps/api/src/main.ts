@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { Category } from './catalog/entities/category.entity';
 import { Product } from './catalog/entities/product.entity';
@@ -23,6 +24,15 @@ function esmDynamicImport(specifier: string): Promise<unknown> {
 }
 
 async function setupAdminPanel(app: INestApplication): Promise<void> {
+  const dataSource = app.get(DataSource);
+  /* AdminJS @adminjs/typeorm опирается на Active Record (`getRepository` на классе сущности). */
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- BaseEntity.useDataSource из typeorm
+  Supplier.useDataSource(dataSource);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  Category.useDataSource(dataSource);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  Product.useDataSource(dataSource);
+
   const [adminJsMod, typeormMod, expressMod] = await Promise.all([
     esmDynamicImport('adminjs'),
     esmDynamicImport('@adminjs/typeorm'),
