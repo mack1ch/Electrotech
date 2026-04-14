@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { createHash } from 'node:crypto';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
@@ -7,15 +8,25 @@ import { Category } from './catalog/entities/category.entity';
 import { Product } from './catalog/entities/product.entity';
 import { Supplier } from './catalog/entities/supplier.entity';
 
+/** AdminJS / cookie encryption ожидают достаточно длинный секрет; короткие значения из .env не должны валить API. */
+function adminSessionSecret(raw: string): string {
+  if (raw.length >= 32) {
+    return raw;
+  }
+  return createHash('sha256').update(raw, 'utf8').digest('hex');
+}
+
 async function setupAdminPanel(app: INestApplication): Promise<void> {
   const adminJsModuleName = 'adminjs';
   const adminJsTypeormModuleName = '@adminjs/typeorm';
   const adminJsExpressModuleName = '@adminjs/express';
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment -- динамические ESM-импорты AdminJS без строгих типов */
   const [{ default: AdminJS }, { Database, Resource }, AdminJSExpress] = await Promise.all([
     import(adminJsModuleName),
     import(adminJsTypeormModuleName),
     import(adminJsExpressModuleName),
   ]);
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
   // Adapter packages export loose types, runtime API is stable.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -23,9 +34,11 @@ async function setupAdminPanel(app: INestApplication): Promise<void> {
 
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@local.dev';
   const adminPassword = process.env.ADMIN_PASSWORD ?? 'admin123';
-  const sessionSecret = process.env.ADMIN_SESSION_SECRET ?? 'replace-me-with-admin-session-secret';
+  const sessionSecret = adminSessionSecret(
+    process.env.ADMIN_SESSION_SECRET ?? 'replace-me-with-admin-session-secret',
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const admin = new AdminJS({
     rootPath: '/admin',
     resources: [Supplier, Category, Product],
@@ -34,7 +47,7 @@ async function setupAdminPanel(app: INestApplication): Promise<void> {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const router = AdminJSExpress.buildAuthenticatedRouter(
     admin,
     {
@@ -75,12 +88,19 @@ async function bootstrap(): Promise<void> {
     origin: webOrigins ? webOrigins.split(',').map((s) => s.trim()) : true,
   });
 
-  await setupAdminPanel(app);
-
   const port = process.env.API_PORT ?? '4000';
   await app.listen(port);
   bootstrapLogger.log(`API listening on http://0.0.0.0:${port}`);
-  bootstrapLogger.log(`AdminJS panel: http://0.0.0.0:${port}/admin`);
+
+  // После listen: healthcheck видит /health даже если AdminJS не поднялся (логируем причину).
+  try {
+    await setupAdminPanel(app);
+    bootstrapLogger.log(`AdminJS panel: http://0.0.0.0:${port}/admin`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    bootstrapLogger.error(`AdminJS failed to initialize; API continues without /admin: ${message}`, stack);
+  }
 }
 
 void bootstrap();
