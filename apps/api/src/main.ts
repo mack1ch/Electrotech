@@ -82,7 +82,8 @@ function mountAdminJsPublicScriptBundles(app: NestExpressApplication): void {
         next(new Error(`AdminJS static file missing: ${absolutePath}`));
         return;
       }
-      res.sendFile(absolutePath, (err) => {
+      // pnpm кладёт зависимости в `node_modules/.pnpm/`; `send` по умолчанию считает такие сегменты dotfile и отвечает 404.
+      res.sendFile(absolutePath, { dotfiles: 'allow' }, (err) => {
         if (err) {
           next(err);
         }
@@ -112,7 +113,7 @@ function mountAdminJsPublicScriptBundles(app: NestExpressApplication): void {
   }
   mount('/components.bundle.js', (_req, res, next) => {
     if (fs.existsSync(componentsBundlePath)) {
-      res.sendFile(path.resolve(componentsBundlePath), (err) => {
+      res.sendFile(path.resolve(componentsBundlePath), { dotfiles: 'allow' }, (err) => {
         if (err) {
           next(err);
         }
