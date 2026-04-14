@@ -21,6 +21,12 @@ export type ApiCategoryRef = {
   name: string;
 };
 
+export type ApiManufacturerRef = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
 export type ApiProduct = {
   id: string;
   slug: string;
@@ -33,6 +39,7 @@ export type ApiProduct = {
   lastUpdatedAt: string | null;
   supplier: ApiSupplierRef;
   category: ApiCategoryRef | null;
+  manufacturer: ApiManufacturerRef | null;
 };
 
 export type ApiProductSpecification = { label: string; value: string };
@@ -65,8 +72,9 @@ export type ApiSupplierCard = {
 };
 
 /** Ответ GET /products/:slug (расширенная карточка для страницы товара). */
-export type ApiProductDetail = ApiProduct & {
+export type ApiProductDetail = Omit<ApiProduct, 'manufacturer'> & {
   priceMax: string | null;
+  /** Текстовая подпись производителя в карточке (отдельно от `manufacturer` в списке — там объект). */
   manufacturer: string | null;
   description: string | null;
   specifications: ApiProductSpecification[];

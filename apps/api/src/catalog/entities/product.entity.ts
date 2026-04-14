@@ -1,5 +1,6 @@
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from './category.entity';
+import { Manufacturer } from './manufacturer.entity';
 import { Supplier } from './supplier.entity';
 
 @Entity({ name: 'products' })
@@ -46,4 +47,11 @@ export class Product extends BaseEntity {
 
   @Column({ name: 'category_id', type: 'uuid', nullable: true })
   categoryId!: string | null;
+
+  @ManyToOne(() => Manufacturer, (m) => m.products, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'manufacturer_id' })
+  manufacturer!: Manufacturer | null;
+
+  @Column({ name: 'manufacturer_id', type: 'uuid', nullable: true })
+  manufacturerId!: string | null;
 }

@@ -3,15 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatalogController } from './catalog.controller';
 import { CategoriesService } from './categories.service';
 import { Category } from './entities/category.entity';
+import { Manufacturer } from './entities/manufacturer.entity';
 import { Product } from './entities/product.entity';
 import { Supplier } from './entities/supplier.entity';
+import { ManufacturersService } from './manufacturers.service';
 import { ProductsService } from './products.service';
 import { SuppliersService } from './suppliers.service';
 import { CatalogSeedService } from './catalog-seed.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product, Supplier, Category])],
+  imports: [TypeOrmModule.forFeature([Product, Supplier, Category, Manufacturer])],
   controllers: [CatalogController],
-  providers: [ProductsService, SuppliersService, CategoriesService, CatalogSeedService],
+  providers: [ProductsService, SuppliersService, CategoriesService, ManufacturersService, CatalogSeedService],
 })
 export class CatalogModule {}

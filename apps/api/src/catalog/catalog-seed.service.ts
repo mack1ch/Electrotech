@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SEED_CATEGORIES, SEED_PRODUCTS, SEED_SUPPLIERS } from './catalog-seed.data';
+import { SEED_CATEGORIES, SEED_MANUFACTURERS, SEED_PRODUCTS, SEED_SUPPLIERS } from './catalog-seed.data';
 import { Category } from './entities/category.entity';
+import { Manufacturer } from './entities/manufacturer.entity';
 import { Product } from './entities/product.entity';
 import { Supplier } from './entities/supplier.entity';
 
@@ -15,6 +16,8 @@ export class CatalogSeedService implements OnModuleInit {
     private readonly suppliers: Repository<Supplier>,
     @InjectRepository(Category)
     private readonly categories: Repository<Category>,
+    @InjectRepository(Manufacturer)
+    private readonly manufacturers: Repository<Manufacturer>,
     @InjectRepository(Product)
     private readonly products: Repository<Product>,
   ) {}
@@ -57,10 +60,16 @@ export class CatalogSeedService implements OnModuleInit {
     );
     const categoryBySlug = new Map(categoryEntities.map((c) => [c.slug, c]));
 
+    const manufacturerEntities = await this.manufacturers.save(
+      SEED_MANUFACTURERS.map((m) => this.manufacturers.create(m)),
+    );
+    const manufacturerBySlug = new Map(manufacturerEntities.map((m) => [m.slug, m]));
+
     const rows = SEED_PRODUCTS.map((row) => {
       const supplier = supplierBySlug.get(row.supplierSlug);
       const category = categoryBySlug.get(row.categorySlug);
-      if (!supplier || !category) {
+      const manufacturer = manufacturerBySlug.get(row.manufacturerSlug);
+      if (!supplier || !category || !manufacturer) {
         throw new Error(`Seed referential error: ${row.slug}`);
       }
       return this.products.create({
@@ -74,6 +83,7 @@ export class CatalogSeedService implements OnModuleInit {
         lastUpdatedAt: new Date(row.lastUpdatedAt),
         supplierId: supplier.id,
         categoryId: category.id,
+        manufacturerId: manufacturer.id,
       });
     });
 
@@ -84,6 +94,7 @@ export class CatalogSeedService implements OnModuleInit {
 
   private async clearCatalogTables(): Promise<void> {
     await this.products.createQueryBuilder().delete().execute();
+    await this.manufacturers.createQueryBuilder().delete().execute();
     await this.suppliers.createQueryBuilder().delete().execute();
     await this.categories.createQueryBuilder().delete().execute();
   }

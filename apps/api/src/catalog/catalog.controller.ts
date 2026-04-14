@@ -2,6 +2,7 @@ import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common
 import { ListProductsQueryDto } from './dto/list-products.query.dto';
 import { ListSuppliersQueryDto } from './dto/list-suppliers.query.dto';
 import { CategoriesService } from './categories.service';
+import { ManufacturersService } from './manufacturers.service';
 import { ProductsService } from './products.service';
 import { SuppliersService } from './suppliers.service';
 
@@ -11,6 +12,7 @@ export class CatalogController {
     private readonly products: ProductsService,
     private readonly suppliers: SuppliersService,
     private readonly categories: CategoriesService,
+    private readonly manufacturers: ManufacturersService,
   ) {}
 
   @Get('products')
@@ -35,6 +37,11 @@ export class CatalogController {
   @Get('categories')
   listCategories() {
     return this.categories.listAll();
+  }
+
+  @Get('manufacturers')
+  listManufacturers() {
+    return this.manufacturers.listAll();
   }
 
   @Get('suppliers')

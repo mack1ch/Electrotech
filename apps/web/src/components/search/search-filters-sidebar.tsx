@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@electrotech/ui';
-import { SEARCH_FILTER_CATEGORIES } from '@/lib/search/filter-categories';
+import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { resetFiltersKeepQuery, searchPath } from '@/lib/search/search-params';
 import { SUPPLIER_WAREHOUSE_CITIES } from '@/lib/suppliers/supplier-warehouse-cities';
@@ -28,7 +28,7 @@ const DEFAULT_PRICE_SLIDER_MAX = 99000;
 type FilterFormValues = {
   priceMin?: number | null;
   priceMax?: number | null;
-  category?: string;
+  manufacturer?: string;
   supplierCity?: string;
 };
 
@@ -36,12 +36,12 @@ function urlStateToFilterValues(state: SearchUrlState, priceSliderMax: number): 
   return {
     priceMin: toPriceMin(state),
     priceMax: toPriceMax(state, priceSliderMax),
-    category: state.category || CAT_ALL,
+    manufacturer: state.manufacturer || CAT_ALL,
     supplierCity: state.supplierCity || '',
   };
 }
 
-/** Ant Design getFieldsValue(true) отдаёт ключи со значением undefined — при spread они затирают поля из URL (например category). */
+/** Ant Design getFieldsValue(true) отдаёт ключи со значением undefined — при spread они затирают поля из URL (например manufacturer). */
 function pickDefinedFilterFields(values: Partial<FilterFormValues>): Partial<FilterFormValues> {
   const out: Partial<FilterFormValues> = {};
   for (const key of Object.keys(values) as (keyof FilterFormValues)[]) {
@@ -121,7 +121,7 @@ function buildNextState(
     v.priceMax != null && !Number.isNaN(v.priceMax) && v.priceMax < priceSliderMax
       ? String(v.priceMax)
       : '';
-  const category = v.category && v.category !== CAT_ALL ? v.category.trim() : '';
+  const manufacturer = v.manufacturer && v.manufacturer !== CAT_ALL ? v.manufacturer.trim() : '';
   const supplierCity = (v.supplierCity ?? '').trim();
 
   return {
@@ -129,7 +129,7 @@ function buildNextState(
     page: 1,
     priceMin,
     priceMax,
-    category,
+    manufacturer,
     supplierCity,
     minStock: '',
     updatedFrom: '',
@@ -241,7 +241,7 @@ function FilterFieldsManufacturer({
   schedulePush: () => void;
   itemClassName: string;
 }) {
-  const category = Form.useWatch('category', form) ?? CAT_ALL;
+  const manufacturer = Form.useWatch('manufacturer', form) ?? CAT_ALL;
 
   return (
     <Form.Item
@@ -253,7 +253,7 @@ function FilterFieldsManufacturer({
             className="!p-0 !text-sm !font-normal !leading-6 !text-brand"
             onClick={(e) => {
               e.preventDefault();
-              form.setFieldValue('category', CAT_ALL);
+              form.setFieldValue('manufacturer', CAT_ALL);
               schedulePush();
             }}
           >
@@ -263,13 +263,13 @@ function FilterFieldsManufacturer({
       }
     >
       <div className="mt-2 flex flex-col gap-2">
-        {SEARCH_FILTER_CATEGORIES.map((c) => (
+        {SEARCH_FILTER_MANUFACTURERS.map((c) => (
           <label key={c.slug} className={manufacturerRowClass}>
             <Checkbox
-              checked={category === c.slug}
+              checked={manufacturer === c.slug}
               className="shrink-0"
               onChange={(e) => {
-                form.setFieldValue('category', e.target.checked ? c.slug : CAT_ALL);
+                form.setFieldValue('manufacturer', e.target.checked ? c.slug : CAT_ALL);
                 schedulePush();
               }}
             />
@@ -411,7 +411,7 @@ function SearchFiltersSidebarInner({
     compactForm.setFieldsValue({
       priceMin: v.priceMin,
       priceMax: v.priceMax,
-      category: v.category,
+      manufacturer: v.manufacturer,
       supplierCity: v.supplierCity,
     });
   }, [fk, state, compactForm, fullForm, priceSliderMax]);
@@ -617,7 +617,7 @@ function serializeFilterKey(state: SearchUrlState): string {
     state.sort,
     state.supplier,
     state.supplierCity,
-    state.category,
+    state.manufacturer,
     state.priceMin,
     state.priceMax,
     state.pageSize,

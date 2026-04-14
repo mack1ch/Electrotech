@@ -37,6 +37,7 @@ export type ProductDetailSupplierCardSeed = {
 
 export type ProductDetailExtension = {
   priceMax?: string | null;
+  /** Необязательная подмена подписи производителя поверх значения из БД (`products.manufacturer_id`). */
   manufacturer?: string | null;
   description?: string | null;
   specifications?: ProductDetailSpec[];

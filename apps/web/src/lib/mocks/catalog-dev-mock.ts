@@ -6,6 +6,7 @@
  */
 import type {
   ApiCategory,
+  ApiManufacturerRef,
   ApiProduct,
   ApiProductDetail,
   ApiProductListResponse,
@@ -21,6 +22,7 @@ import { isPriceOnRequest } from '@/lib/format/search-table';
 
 type SeedSupplierRow = { slug: string; name: string };
 type SeedCategoryRow = { slug: string; name: string; parentId: null };
+type SeedManufacturerRow = { slug: string; name: string };
 type SeedProductRow = {
   slug: string;
   name: string;
@@ -32,6 +34,7 @@ type SeedProductRow = {
   lastUpdatedAt: string;
   supplierSlug: string;
   categorySlug: string;
+  manufacturerSlug: string;
 };
 
 const SEED_SUPPLIERS: SeedSupplierRow[] = [
@@ -51,6 +54,17 @@ const SEED_CATEGORIES: SeedCategoryRow[] = [
   { slug: 'lighting', name: 'Светотехника', parentId: null },
 ];
 
+const SEED_MANUFACTURERS: SeedManufacturerRow[] = [
+  { slug: 'elektrotechnika', name: 'Электротехника' },
+  { slug: 'kabelny-zavod', name: 'Кабельный завод' },
+  { slug: 'silovoy-kabel', name: 'Силовой кабель' },
+  { slug: 'svyazka-shnur', name: 'Связка / шнур' },
+  { slug: 'dekraft', name: 'DEKraft / аналог' },
+  { slug: 'led-systems', name: 'LED Systems' },
+  { slug: 'iek', name: 'IEK / аналог' },
+  { slug: 'inkotex-merkuriy', name: 'Инкотекс / Меркурий' },
+];
+
 const SEED_PRODUCTS: SeedProductRow[] = [
   {
     slug: 'vvgng-ls-3x2-5',
@@ -62,6 +76,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'vvgng-ls-3x1-5',
@@ -73,6 +88,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-16',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'vvgng-ls-5x4',
@@ -84,6 +100,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-15',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'kabelny-zavod',
   },
   {
     slug: 'vvg-3x2-5',
@@ -95,6 +112,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-14',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'avvg-4x120',
@@ -107,6 +125,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-10',
     supplierSlug: 'electro-snab',
     categorySlug: 'cable',
+    manufacturerSlug: 'silovoy-kabel',
   },
   {
     slug: 'pvs-3x2-5',
@@ -118,6 +137,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-12',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'svyazka-shnur',
   },
   {
     slug: 'puv-1x10',
@@ -129,6 +149,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-08',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'avb-63a',
@@ -140,6 +161,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-28',
     supplierSlug: 'electro-snab',
     categorySlug: 'equipment',
+    manufacturerSlug: 'dekraft',
   },
   {
     slug: 'avb-25a-b',
@@ -151,6 +173,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-01',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'kontaktor-40a',
@@ -162,6 +185,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-20',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'rubezh-12m',
@@ -173,6 +197,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-05',
     supplierSlug: 'electro-snab',
     categorySlug: 'equipment',
+    manufacturerSlug: 'dekraft',
   },
   {
     slug: 'schit-nakladnoy-12',
@@ -184,6 +209,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-11',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'schit-vstraivaemyy-24',
@@ -195,6 +221,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-30',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'avr-63a',
@@ -206,6 +233,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-15',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'svetilnik-led-36w',
@@ -217,6 +245,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-13',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'prozhektor-led-50w',
@@ -228,6 +257,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-09',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'lampa-led-e27-10w',
@@ -239,6 +269,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'kabel-nym-3x1-5',
@@ -250,6 +281,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-06',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'sip-4x16',
@@ -261,6 +293,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-04',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'silovoy-kabel',
   },
   {
     slug: 'transformato-630',
@@ -273,6 +306,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2025-12-01',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'schetchik-merkuriy-201',
@@ -284,6 +318,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-03',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'equipment',
+    manufacturerSlug: 'inkotex-merkuriy',
   },
   {
     slug: 'kabel-vbshv-3h16',
@@ -295,6 +330,7 @@ const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
 ];
 
@@ -747,7 +783,7 @@ function defaultOffersFromProduct(p: ApiProduct): ApiProductOffer[] {
 function toProductDetail(p: ApiProduct): ApiProductDetail {
   const ext = PRODUCT_DETAIL_MOCK_EXT[p.slug] ?? {};
   const specifications = ext.specifications ?? [];
-  const manufacturer = ext.manufacturer ?? p.category?.name ?? null;
+  const manufacturer = ext.manufacturer ?? p.manufacturer?.name ?? null;
   const supplierCard: ApiSupplierCard = {
     companyName: ext.supplierCard?.companyName ?? p.supplier.name,
     slug: p.supplier.slug,
@@ -960,6 +996,7 @@ type CatalogCache = {
   categories: ApiCategory[];
   suppliers: ApiSupplierRef[];
   products: ApiProduct[];
+  manufacturers: ApiManufacturerRef[];
 };
 
 let cache: CatalogCache | null = null;
@@ -984,11 +1021,25 @@ function getCatalog(): CatalogCache {
     ApiCategory
   >;
 
+  const manufacturers: ApiManufacturerRef[] = SEED_MANUFACTURERS.map((m) => ({
+    id: `mock-m-${m.slug}`,
+    slug: m.slug,
+    name: m.name,
+  }));
+  const manufacturerBySlug = Object.fromEntries(manufacturers.map((m) => [m.slug, m])) as Record<
+    string,
+    ApiManufacturerRef
+  >;
+
   const products: ApiProduct[] = SEED_PRODUCTS.map((row) => {
     const supplier = supplierBySlug[row.supplierSlug];
     const cat = categoryBySlug[row.categorySlug];
+    const manufacturer = manufacturerBySlug[row.manufacturerSlug];
     if (!supplier) {
       throw new Error(`catalog-dev-mock: unknown supplierSlug ${row.supplierSlug}`);
+    }
+    if (!manufacturer) {
+      throw new Error(`catalog-dev-mock: unknown manufacturerSlug ${row.manufacturerSlug}`);
     }
     return {
       id: `mock-p-${row.slug}`,
@@ -1003,10 +1054,11 @@ function getCatalog(): CatalogCache {
       category: cat
         ? { id: cat.id, slug: cat.slug, name: cat.name }
         : null,
+      manufacturer,
     };
   });
 
-  cache = { categories, suppliers, products };
+  cache = { categories, suppliers, products, manufacturers };
   return cache;
 }
 
@@ -1070,6 +1122,7 @@ function listProductsMock(sp: URLSearchParams): ApiProductListResponse {
   const { products } = getCatalog();
   const q = sp.get('q') ?? '';
   const category = sp.get('category')?.trim() ?? '';
+  const manufacturer = sp.get('manufacturer')?.trim() ?? '';
   const supplier = sp.get('supplier')?.trim() ?? '';
   const rawSort = sp.get('sort') ?? 'price_asc';
   const sort = MOCK_SORT_KEYS.has(rawSort) ? rawSort : 'price_asc';
@@ -1087,6 +1140,9 @@ function listProductsMock(sp: URLSearchParams): ApiProductListResponse {
   let rows = products.filter((p) => matchesProductSearch(p, q));
   if (category) {
     rows = rows.filter((p) => p.category?.slug === category);
+  }
+  if (manufacturer) {
+    rows = rows.filter((p) => p.manufacturer?.slug === manufacturer);
   }
   if (supplier) {
     rows = rows.filter((p) => p.supplier.slug === supplier);
@@ -1237,6 +1293,10 @@ export function resolveCatalogDevMockFromPath(path: string): CatalogDevMockResul
 
   if (pathname === '/categories') {
     return { kind: 'data', body: getCatalog().categories };
+  }
+
+  if (pathname === '/manufacturers') {
+    return { kind: 'data', body: getCatalog().manufacturers };
   }
 
   if (pathname === '/products') {

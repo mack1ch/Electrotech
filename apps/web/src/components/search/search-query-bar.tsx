@@ -78,6 +78,7 @@ function serialize(s: SearchUrlState): string {
     s.sort,
     s.pageSize,
     s.category,
+    s.manufacturer,
     s.priceMin,
     s.priceMax,
     s.minStock,

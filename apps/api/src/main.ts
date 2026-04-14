@@ -10,7 +10,10 @@ import type { Application, NextFunction, Request, Response } from 'express';
 import type { SessionOptions } from 'express-session';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
+import { adminJsRuTranslations } from './admin/adminjs.locale.ru';
+import { adminJsResources } from './admin/adminjs.resources';
 import { Category } from './catalog/entities/category.entity';
+import { Manufacturer } from './catalog/entities/manufacturer.entity';
 import { Product } from './catalog/entities/product.entity';
 import { Supplier } from './catalog/entities/supplier.entity';
 
@@ -141,6 +144,7 @@ async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
   /* AdminJS @adminjs/typeorm опирается на Active Record (`getRepository` на классе сущности). */
   Supplier.useDataSource(dataSource);
   Category.useDataSource(dataSource);
+  Manufacturer.useDataSource(dataSource);
   Product.useDataSource(dataSource);
 
   const [adminJsMod, typeormMod, expressMod] = await Promise.all([
@@ -166,10 +170,27 @@ async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
 
   const admin = new AdminJS({
     rootPath: '/admin',
-    resources: [Supplier, Category, Product],
-    branding: {
-      companyName: 'Electrotech API Admin',
+    locale: {
+      language: 'ru',
+      availableLanguages: ['ru'],
+      translations: {
+        ru: adminJsRuTranslations as unknown as Record<string, Record<string, string>>,
+      },
     },
+    branding: {
+      companyName: 'Электротехника — каталог',
+      withMadeWithLove: false,
+      theme: {
+        colors: {
+          primary100: '#264b82',
+          primary80: '#325a91',
+          primary60: '#406a9f',
+          primary40: '#557fad',
+          primary20: '#6d93bb',
+        },
+      },
+    },
+    resources: adminJsResources,
   });
 
   const trustProxy = trustProxyEnabled();

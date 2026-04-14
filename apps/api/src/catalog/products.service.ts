@@ -21,6 +21,7 @@ export type ProductListItem = {
   lastUpdatedAt: string | null;
   supplier: { id: string; slug: string; name: string };
   category: { id: string; slug: string; name: string } | null;
+  manufacturer: { id: string; slug: string; name: string } | null;
 };
 
 export type ProductOfferRow = {
@@ -48,8 +49,9 @@ export type ProductSupplierCard = {
   onPortalBadge: SupplierPortalBadge | null;
 };
 
-export type ProductDetailItem = ProductListItem & {
+export type ProductDetailItem = Omit<ProductListItem, 'manufacturer'> & {
   priceMax: string | null;
+  /** Подпись производителя для карточки товара (строка). */
   manufacturer: string | null;
   description: string | null;
   specifications: { label: string; value: string }[];
@@ -80,7 +82,8 @@ export class ProductsService {
     const qb = this.products
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.supplier', 's')
-      .leftJoinAndSelect('p.category', 'c');
+      .leftJoinAndSelect('p.category', 'c')
+      .leftJoinAndSelect('p.manufacturer', 'm');
 
     if (query.q?.trim()) {
       const term = `%${query.q.trim()}%`;
@@ -89,6 +92,9 @@ export class ProductsService {
 
     if (query.category?.trim()) {
       qb.andWhere('c.slug = :slug', { slug: query.category.trim() });
+    }
+    if (query.manufacturer?.trim()) {
+      qb.andWhere('m.slug = :manufacturerSlug', { manufacturerSlug: query.manufacturer.trim() });
     }
     if (query.supplier?.trim()) {
       qb.andWhere('s.slug = :supplierSlug', { supplierSlug: query.supplier.trim() });
@@ -209,7 +215,7 @@ export class ProductsService {
   async findBySlug(slug: string): Promise<ProductDetailItem | null> {
     const p = await this.products.findOne({
       where: { slug },
-      relations: { supplier: true, category: true },
+      relations: { supplier: true, category: true, manufacturer: true },
     });
     if (!p) {
       return null;
@@ -225,7 +231,8 @@ export class ProductsService {
     ext: ProductDetailExtension,
   ): ProductDetailItem {
     const specifications = ext.specifications ?? [];
-    const manufacturer = ext.manufacturer ?? (p.category ? p.category.name : null);
+    const manufacturer =
+      ext.manufacturer ?? (p.manufacturer ? p.manufacturer.name : null);
     const supplierCard: ProductSupplierCard = {
       companyName: ext.supplierCard?.companyName ?? base.supplier.name,
       slug: base.supplier.slug,
@@ -299,6 +306,9 @@ export class ProductsService {
       },
       category: p.category
         ? { id: p.category.id, slug: p.category.slug, name: p.category.name }
+        : null,
+      manufacturer: p.manufacturer
+        ? { id: p.manufacturer.id, slug: p.manufacturer.slug, name: p.manufacturer.name }
         : null,
     };
   }

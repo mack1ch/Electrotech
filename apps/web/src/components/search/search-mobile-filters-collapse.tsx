@@ -9,7 +9,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LoaderCircle, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@electrotech/ui';
-import { SEARCH_FILTER_CATEGORIES } from '@/lib/search/filter-categories';
+import { SEARCH_PRODUCT_CATEGORIES } from '@/lib/search/filter-categories';
+import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
 import { resetFiltersKeepQuery, searchPath, type SearchUrlState } from '@/lib/search/search-params';
 import { useNavigationPending } from '@/lib/ui/use-navigation-pending';
 
@@ -50,10 +51,15 @@ export function SearchMobileFiltersCollapse({
     [filtersPending, router, runNavigation, state],
   );
 
-  const categoryLabel = useMemo(() => {
-    const hit = SEARCH_FILTER_CATEGORIES.find((c) => c.slug === state.category);
+  const taxonomyCategoryLabel = useMemo(() => {
+    const hit = SEARCH_PRODUCT_CATEGORIES.find((c) => c.slug === state.category);
     return hit?.label ?? '';
   }, [state.category]);
+
+  const manufacturerLabel = useMemo(() => {
+    const hit = SEARCH_FILTER_MANUFACTURERS.find((c) => c.slug === state.manufacturer);
+    return hit?.label ?? '';
+  }, [state.manufacturer]);
 
   const chips = useMemo<MobileFilterChip[]>(() => {
     const result: MobileFilterChip[] = [];
@@ -64,11 +70,18 @@ export function SearchMobileFiltersCollapse({
         onRemove: () => pushPatch({ minStock: '' }),
       });
     }
-    if (categoryLabel) {
+    if (taxonomyCategoryLabel) {
       result.push({
         key: 'category',
-        label: categoryLabel,
+        label: taxonomyCategoryLabel,
         onRemove: () => pushPatch({ category: '' }),
+      });
+    }
+    if (manufacturerLabel) {
+      result.push({
+        key: 'manufacturer',
+        label: manufacturerLabel,
+        onRemove: () => pushPatch({ manufacturer: '' }),
       });
     }
     if (state.availability) {
@@ -92,9 +105,9 @@ export function SearchMobileFiltersCollapse({
       });
     }
     return result;
-  }, [categoryLabel, pushPatch, state]);
+  }, [taxonomyCategoryLabel, manufacturerLabel, pushPatch, state]);
 
-  const categories = showAllCategories ? SEARCH_FILTER_CATEGORIES : SEARCH_FILTER_CATEGORIES.slice(0, 4);
+  const categories = showAllCategories ? SEARCH_PRODUCT_CATEGORIES : SEARCH_PRODUCT_CATEGORIES.slice(0, 4);
   const priceMin = Math.max(0, toNum(state.priceMin, 0));
   const priceMax = Math.min(cap, Math.max(priceMin, toNum(state.priceMax, cap)));
 
@@ -158,7 +171,7 @@ export function SearchMobileFiltersCollapse({
               <div className="space-y-1">
                 <button
                   type="button"
-                  onClick={() => pushPatch({ category: '' })}
+                  onClick={() => pushPatch({ category: '', page: 1 })}
                   className={cn(
                     'w-full rounded-[10px] px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1',
                     state.category === '' ? 'bg-[#e5efff] font-semibold text-brand' : 'text-[#0a0a0a]',
@@ -172,7 +185,7 @@ export function SearchMobileFiltersCollapse({
                     <button
                       key={category.slug}
                       type="button"
-                      onClick={() => pushPatch({ category: category.slug })}
+                      onClick={() => pushPatch({ category: category.slug, page: 1 })}
                       className={cn(
                         'flex w-full items-center justify-between rounded-[10px] px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1',
                         active ? 'bg-[#e5efff] font-semibold text-brand' : 'text-[#0a0a0a]',
@@ -286,24 +299,26 @@ export function SearchMobileFiltersCollapse({
                 <div className="text-base font-semibold text-[#0a0a0a]">Производитель</div>
                 <button
                   type="button"
-                  onClick={() => pushPatch({ category: '' })}
+                  onClick={() => pushPatch({ manufacturer: '', page: 1 })}
                   className="rounded text-sm text-brand transition-colors hover:text-[#1f3d68] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
                 >
                   Все
                 </button>
               </div>
               <div className="space-y-2">
-                {SEARCH_FILTER_CATEGORIES.slice(0, 4).map((category) => (
+                {SEARCH_FILTER_MANUFACTURERS.map((m) => (
                   <label
-                    key={category.slug}
+                    key={m.slug}
                     className="flex min-h-[22px] cursor-pointer items-center gap-2 text-base text-[#0a0a0a] [&_.ant-checkbox]:top-0 [&_.ant-checkbox-inner]:h-4 [&_.ant-checkbox-inner]:w-4 [&_.ant-checkbox-inner]:rounded-[2.5px]"
                   >
                     <Checkbox
                       className="shrink-0"
-                      checked={state.category === category.slug}
-                      onChange={(e) => pushPatch({ category: e.target.checked ? category.slug : '' })}
+                      checked={state.manufacturer === m.slug}
+                      onChange={(e) =>
+                        pushPatch({ manufacturer: e.target.checked ? m.slug : '', page: 1 })
+                      }
                     />
-                    <span className="select-none leading-snug">{category.label}</span>
+                    <span className="select-none leading-snug">{m.label}</span>
                   </label>
                 ))}
               </div>

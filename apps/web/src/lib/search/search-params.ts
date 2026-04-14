@@ -31,6 +31,7 @@ export type SearchUrlState = {
   page: number;
   pageSize: number;
   category: string;
+  manufacturer: string;
   priceMin: string;
   priceMax: string;
   minStock: string;
@@ -76,6 +77,7 @@ export function parseSearchUrlState(sp: Record<string, string | undefined>): Sea
   const page = parsePositiveInt(sp['page'], 1, 10_000);
   const pageSize = parsePositiveInt(sp['pageSize'], DEFAULT_PAGE_SIZE, 100);
   const category = sp['category']?.trim() ?? '';
+  const manufacturer = sp['manufacturer']?.trim() ?? '';
   const priceMin = sp['priceMin']?.trim() ?? '';
   const priceMax = sp['priceMax']?.trim() ?? '';
   const minStock = sp['minStock']?.trim() ?? '';
@@ -94,6 +96,7 @@ export function parseSearchUrlState(sp: Record<string, string | undefined>): Sea
     page,
     pageSize,
     category,
+    manufacturer,
     priceMin,
     priceMax,
     minStock,
@@ -122,6 +125,9 @@ export function buildProductsApiQuery(state: SearchUrlState): URLSearchParams {
   }
   if (state.category) {
     params.set('category', state.category);
+  }
+  if (state.manufacturer) {
+    params.set('manufacturer', state.manufacturer);
   }
   if (state.priceMin !== '' && !Number.isNaN(Number.parseFloat(state.priceMin))) {
     params.set('priceMin', state.priceMin);
@@ -168,6 +174,9 @@ export function serializeSearchState(state: SearchUrlState): string {
   if (state.category) {
     p.set('category', state.category);
   }
+  if (state.manufacturer) {
+    p.set('manufacturer', state.manufacturer);
+  }
   if (state.priceMin) {
     p.set('priceMin', state.priceMin);
   }
@@ -202,6 +211,7 @@ export function resetFiltersKeepQuery(state: SearchUrlState): SearchUrlState {
     supplier: '',
     supplierCity: '',
     category: '',
+    manufacturer: '',
     priceMin: '',
     priceMax: '',
     minStock: '',
@@ -223,6 +233,7 @@ export function resetFiltersAndQuery(state: SearchUrlState): SearchUrlState {
 export function hasActiveSearchFilters(state: SearchUrlState): boolean {
   return (
     Boolean(state.category) ||
+    Boolean(state.manufacturer) ||
     Boolean(state.supplier) ||
     Boolean(state.supplierCity) ||
     state.priceMin !== '' ||

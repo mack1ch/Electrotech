@@ -132,7 +132,7 @@ function SearchTableRow({ product: p }: { product: ApiProduct }) {
         </p>
       </div>
       <div className="px-6 py-4 text-sm font-normal text-[#4a5565]" role="cell">
-        {p.category?.name ?? '—'}
+        {p.manufacturer?.name ?? '—'}
       </div>
       <div className="px-6 py-4" role="cell">
         <span className="inline-flex items-center gap-1 text-sm text-[#4a5565]">

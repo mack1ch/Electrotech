@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Category } from '../catalog/entities/category.entity';
+import { Manufacturer } from '../catalog/entities/manufacturer.entity';
 import { Product } from '../catalog/entities/product.entity';
 import { Supplier } from '../catalog/entities/supplier.entity';
 
@@ -18,7 +19,7 @@ import { Supplier } from '../catalog/entities/supplier.entity';
         return {
           type: 'postgres' as const,
           url,
-          entities: [Supplier, Category, Product],
+          entities: [Supplier, Category, Manufacturer, Product],
           synchronize: sync,
           logging: process.env.TYPEORM_LOGGING === 'true',
         };

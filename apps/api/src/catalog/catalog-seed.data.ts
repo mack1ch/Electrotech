@@ -4,6 +4,8 @@ export type SeedSupplierRow = { slug: string; name: string };
 
 export type SeedCategoryRow = { slug: string; name: string; parentId: null };
 
+export type SeedManufacturerRow = { slug: string; name: string };
+
 export type SeedProductRow = {
   slug: string;
   name: string;
@@ -16,6 +18,8 @@ export type SeedProductRow = {
   lastUpdatedAt: string;
   supplierSlug: string;
   categorySlug: string;
+  /** Производитель (отдельно от категории товара). */
+  manufacturerSlug: string;
 };
 
 export const SEED_SUPPLIERS: SeedSupplierRow[] = [
@@ -35,6 +39,18 @@ export const SEED_CATEGORIES: SeedCategoryRow[] = [
   { slug: 'lighting', name: 'Светотехника', parentId: null },
 ];
 
+/** Справочник производителей для фильтра поиска и колонки «Производитель». */
+export const SEED_MANUFACTURERS: SeedManufacturerRow[] = [
+  { slug: 'elektrotechnika', name: 'Электротехника' },
+  { slug: 'kabelny-zavod', name: 'Кабельный завод' },
+  { slug: 'silovoy-kabel', name: 'Силовой кабель' },
+  { slug: 'svyazka-shnur', name: 'Связка / шнур' },
+  { slug: 'dekraft', name: 'DEKraft / аналог' },
+  { slug: 'led-systems', name: 'LED Systems' },
+  { slug: 'iek', name: 'IEK / аналог' },
+  { slug: 'inkotex-merkuriy', name: 'Инкотекс / Меркурий' },
+];
+
 export const SEED_PRODUCTS: SeedProductRow[] = [
   {
     slug: 'vvgng-ls-3x2-5',
@@ -46,6 +62,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'vvgng-ls-3x1-5',
@@ -57,6 +74,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-16',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'vvgng-ls-5x4',
@@ -68,6 +86,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-15',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'kabelny-zavod',
   },
   {
     slug: 'vvg-3x2-5',
@@ -79,6 +98,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-14',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'avvg-4x120',
@@ -91,6 +111,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-10',
     supplierSlug: 'electro-snab',
     categorySlug: 'cable',
+    manufacturerSlug: 'silovoy-kabel',
   },
   {
     slug: 'pvs-3x2-5',
@@ -102,6 +123,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-12',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'svyazka-shnur',
   },
   {
     slug: 'puv-1x10',
@@ -113,6 +135,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-08',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'avb-63a',
@@ -124,6 +147,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-28',
     supplierSlug: 'electro-snab',
     categorySlug: 'equipment',
+    manufacturerSlug: 'dekraft',
   },
   {
     slug: 'avb-25a-b',
@@ -135,6 +159,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-01',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'kontaktor-40a',
@@ -146,6 +171,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-20',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'rubezh-12m',
@@ -157,6 +183,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-05',
     supplierSlug: 'electro-snab',
     categorySlug: 'equipment',
+    manufacturerSlug: 'dekraft',
   },
   {
     slug: 'schit-nakladnoy-12',
@@ -168,6 +195,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-11',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'schit-vstraivaemyy-24',
@@ -179,6 +207,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-30',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'avr-63a',
@@ -190,6 +219,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-01-15',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'switchgear',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'svetilnik-led-36w',
@@ -201,6 +231,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-13',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'prozhektor-led-50w',
@@ -212,6 +243,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-09',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'lampa-led-e27-10w',
@@ -223,6 +255,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'svet-torg',
     categorySlug: 'lighting',
+    manufacturerSlug: 'led-systems',
   },
   {
     slug: 'kabel-nym-3x1-5',
@@ -234,6 +267,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-06',
     supplierSlug: 'moskabel',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
   {
     slug: 'sip-4x16',
@@ -245,6 +279,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-04',
     supplierSlug: 'kabel-profi',
     categorySlug: 'cable',
+    manufacturerSlug: 'silovoy-kabel',
   },
   {
     slug: 'transformato-630',
@@ -257,6 +292,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2025-12-01',
     supplierSlug: 'elektrokomplekt',
     categorySlug: 'equipment',
+    manufacturerSlug: 'iek',
   },
   {
     slug: 'schetchik-merkuriy-201',
@@ -268,6 +304,7 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-03',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'equipment',
+    manufacturerSlug: 'inkotex-merkuriy',
   },
   {
     slug: 'kabel-vbshv-3h16',
@@ -279,5 +316,6 @@ export const SEED_PRODUCTS: SeedProductRow[] = [
     lastUpdatedAt: '2026-02-17',
     supplierSlug: 'ivanov-partners',
     categorySlug: 'cable',
+    manufacturerSlug: 'elektrotechnika',
   },
 ];

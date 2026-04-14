@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@electrotech/ui';
 import { fetchPublicApiJson } from '@/lib/api/public-api';
 import { SearchAllFiltersDrawer } from '@/components/search/search-filters-sidebar';
-import { SEARCH_FILTER_CATEGORIES } from '@/lib/search/filter-categories';
+import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { parseSearchUrlState, searchPath } from '@/lib/search/search-params';
 import type { ApiProductPriceFilterMeta } from '@/lib/types/catalog';
@@ -31,15 +31,15 @@ const AVAILABILITY_OPTIONS = [
   { value: 'expected', label: 'Ожидается поставка' },
 ] as const;
 
-const CATEGORY_OPTIONS = [
+const MANUFACTURER_OPTIONS = [
   { value: '', label: 'Любой' },
-  ...SEARCH_FILTER_CATEGORIES.map((c) => ({ value: c.slug, label: c.label })),
+  ...SEARCH_FILTER_MANUFACTURERS.map((c) => ({ value: c.slug, label: c.label })),
 ];
 
 type LandingSearchFormValues = {
   q: string;
   availability: string;
-  category: string;
+  manufacturer: string;
   priceMin: number | null;
   priceMax: number | null;
 };
@@ -72,13 +72,13 @@ function buildSearchStateFromForm(
     v.availability === 'in_stock' || v.availability === 'on_order' || v.availability === 'expected'
       ? v.availability
       : '';
-  const category = (v.category ?? '').trim();
+  const manufacturer = (v.manufacturer ?? '').trim();
 
   return {
     ...base,
     q: (v.q ?? '').trim(),
     page: 1,
-    category,
+    manufacturer,
     availability,
     priceMin: minVal > 0 ? String(minVal) : '',
     priceMax: maxVal < priceSliderMax ? String(maxVal) : '',
@@ -267,7 +267,7 @@ export function LandingHeroSearch() {
         initialValues={{
           q: '',
           availability: '',
-          category: '',
+          manufacturer: '',
           priceMin: 0,
           priceMax: DEFAULT_PRICE_SLIDER_MAX,
         }}
@@ -309,7 +309,7 @@ export function LandingHeroSearch() {
 
             <div className="grid grid-cols-2 gap-2 lg:contents">
               <Form.Item
-                name="category"
+                name="manufacturer"
                 label="Производитель"
                 className="!mb-0 min-w-0 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]"
               >
@@ -319,7 +319,7 @@ export function LandingHeroSearch() {
                     variant="borderless"
                     showSearch
                     optionFilterProp="label"
-                    options={[...CATEGORY_OPTIONS]}
+                    options={[...MANUFACTURER_OPTIONS]}
                     className={selectClassName}
                     popupMatchSelectWidth={false}
                     getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
