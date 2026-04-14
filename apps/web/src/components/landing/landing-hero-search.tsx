@@ -250,9 +250,13 @@ export function LandingHeroSearch() {
           priceMax: DEFAULT_PRICE_SLIDER_MAX,
         }}
       >
-        <div className="w-full bg-white px-4 pb-4 pt-6 shadow-[0_8px_32px_rgba(38,46,63,0.08)] lg:rounded-none lg:p-10 lg:shadow-[0_8px_32px_rgba(38,46,63,0.06)]">
-          <div className="flex w-full flex-col gap-6 lg:flex-row lg:flex-wrap lg:items-end lg:gap-x-4 lg:gap-y-6">
-            <Form.Item name="q" label="Позиция" className="!mb-0 min-w-0 flex-1 lg:min-w-[140px]">
+        <div className="w-full bg-white px-4 pb-4 pt-6 shadow-[0_8px_32px_rgba(38,46,63,0.08)] lg:rounded-none lg:px-10 lg:pb-10 lg:pt-10 lg:shadow-[0_8px_32px_rgba(38,46,63,0.06)]">
+          <div className="flex w-full flex-col gap-6 lg:flex-row lg:flex-wrap lg:gap-[16px]">
+            <Form.Item
+              name="q"
+              label="Позиция"
+              className="!mb-0 min-w-0 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]"
+            >
               <div className="rounded-[4px] bg-[#f9fafb] px-4 transition-[background-color] duration-150 hover:bg-[#f4f6f8]">
                 <Input
                   placeholder="Артикул/Название"
@@ -263,7 +267,11 @@ export function LandingHeroSearch() {
               </div>
             </Form.Item>
 
-            <Form.Item name="availability" label="Сроки доставки" className="!mb-0 min-w-0 flex-1 lg:min-w-[140px]">
+            <Form.Item
+              name="availability"
+              label="Сроки доставки"
+              className="!mb-0 min-w-0 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]"
+            >
               <div className={selectShellClass}>
                 <Select
                   aria-label="Сроки доставки"
@@ -277,31 +285,35 @@ export function LandingHeroSearch() {
               </div>
             </Form.Item>
 
-            <Form.Item name="category" label="Производитель" className="!mb-0 min-w-0 flex-1 lg:min-w-[140px]">
-              <div className={selectShellClass}>
-                <Select
-                  aria-label="Производитель"
-                  variant="borderless"
-                  showSearch
-                  optionFilterProp="label"
-                  options={[...CATEGORY_OPTIONS]}
-                  className={selectClassName}
-                  popupMatchSelectWidth={false}
-                  getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
-                  suffixIcon={<DownOutlined className="!text-[13px] text-[#0a0a0a]" />}
-                />
-              </div>
-            </Form.Item>
+            <div className="grid grid-cols-2 gap-2 lg:contents">
+              <Form.Item
+                name="category"
+                label="Производитель"
+                className="!mb-0 min-w-0 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]"
+              >
+                <div className={selectShellClass}>
+                  <Select
+                    aria-label="Производитель"
+                    variant="borderless"
+                    showSearch
+                    optionFilterProp="label"
+                    options={[...CATEGORY_OPTIONS]}
+                    className={selectClassName}
+                    popupMatchSelectWidth={false}
+                    getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
+                    suffixIcon={<DownOutlined className="!text-[13px] text-[#0a0a0a]" />}
+                  />
+                </div>
+              </Form.Item>
 
-            <Form.Item
-              label={
-                <span>
-                  Стоимость<span className="tracking-[-0.16px]">, ₽</span>
-                </span>
-              }
-              className="!mb-0 min-w-0 flex-1 lg:min-w-[160px]"
-            >
-              <div className="flex w-full items-end gap-2">
+              <Form.Item
+                label={
+                  <span>
+                    Стоимость<span className="tracking-[-0.16px]">, ₽</span>
+                  </span>
+                }
+                className="!mb-0 min-w-0 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]"
+              >
                 <Dropdown
                   open={priceDropdownOpen}
                   onOpenChange={setPriceDropdownOpen}
@@ -310,7 +322,7 @@ export function LandingHeroSearch() {
                   getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
                   popupRender={() => pricePanel}
                 >
-                  <div className="relative flex h-[52px] min-w-0 flex-1 cursor-pointer items-center rounded-[4px] bg-[#f9fafb] px-4 transition-[background-color] duration-150 hover:bg-[#f4f6f8]">
+                  <div className="relative flex h-[52px] min-w-0 cursor-pointer items-center rounded-[4px] bg-[#f9fafb] px-4 transition-[background-color] duration-150 hover:bg-[#f4f6f8] lg:hidden">
                     <Form.Item
                       noStyle
                       shouldUpdate={(p, c) => p.priceMin !== c.priceMin || p.priceMax !== c.priceMax}
@@ -346,41 +358,70 @@ export function LandingHeroSearch() {
                     </Form.Item>
                   </div>
                 </Dropdown>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openAllFiltersDrawer();
-                  }}
-                  className={cn(
-                    'flex size-[52px] shrink-0 items-center justify-center rounded-[10px] bg-[#f9fafb] text-[#0a0a0a]/85',
-                    'transition-[background-color,transform] duration-150 hover:bg-[#f0f3f7] active:scale-[0.98]',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#264b82]',
-                  )}
-                  aria-label="Все фильтры"
-                >
-                  <SlidersOutlined className="text-xl" />
-                </button>
-              </div>
-            </Form.Item>
+                <div className="relative hidden h-[52px] items-center gap-3 rounded-[4px] bg-[#f9fafb] px-4 lg:flex">
+                  <Form.Item name="priceMin" noStyle>
+                    <InputNumber
+                      min={0}
+                      max={priceSliderMax}
+                      controls={false}
+                      variant="borderless"
+                      placeholder="0"
+                      className="!w-[68px] !bg-transparent !text-base !text-[#a7a7a7] [&_.ant-input-number-input]:!text-[#a7a7a7]"
+                    />
+                  </Form.Item>
+                  <span className="text-base text-[#a7a7a7]" aria-hidden>
+                    —
+                  </span>
+                  <Form.Item name="priceMax" noStyle>
+                    <InputNumber
+                      min={0}
+                      max={priceSliderMax}
+                      controls={false}
+                      variant="borderless"
+                      placeholder={formatPriceRu(priceSliderMax)}
+                      className="!w-[88px] !bg-transparent !text-right !text-base !text-[#a7a7a7] [&_.ant-input-number-input]:!text-right [&_.ant-input-number-input]:!text-[#a7a7a7]"
+                    />
+                  </Form.Item>
+                  <span className="pointer-events-none absolute inset-x-9 bottom-0 h-px bg-[#264b82]" aria-hidden />
+                </div>
+              </Form.Item>
+            </div>
 
-            <div className="flex w-full min-w-0 flex-1 items-end lg:min-w-[200px]">
-              <Button
-                type="primary"
-                htmlType="submit"
-                className="!h-[52px] w-full !rounded-none !border-0 !bg-[#264b82] !px-12 !text-[19px] !font-bold !leading-[25px] !text-[#f9fafb] hover:!bg-[#1f3d68] lg:!w-auto lg:!min-w-[140px]"
+            <div className="flex w-full items-end gap-2 lg:w-[calc((100%-16px*4)/5)] lg:min-w-[238px]">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openAllFiltersDrawer();
+                }}
+                className={cn(
+                  'flex size-[52px] shrink-0 items-center justify-center rounded-[10px] bg-[#f9fafb] text-[#0a0a0a]/85',
+                  'transition-[background-color,transform] duration-150 hover:bg-[#f0f3f7] active:scale-[0.98]',
+                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#264b82]',
+                )}
+                aria-label="Все фильтры"
               >
-                Найти
-              </Button>
+                <SlidersOutlined className="text-xl" />
+              </button>
+
+              <div className="min-w-0 flex-1 lg:flex-none">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  className="!h-[53px] w-full !rounded-none !border-0 !bg-[#264b82] !px-12 !text-[19px] !font-bold !leading-[25px] !text-[#f9fafb] hover:!bg-[#1f3d68] lg:!h-[53px] lg:!w-[155px]"
+                >
+                  Найти
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </Form>
 
       {/* Отдельно от карточки поиска: только белые кнопки на фоне страницы */}
-      <div className="mt-3 flex w-full flex-wrap gap-3">
-        {chips.map((c) => (
+      <div className="mt-2 flex w-full flex-wrap gap-2 lg:mt-3 lg:gap-3">
+        {chips.map((c, index) => (
           <Link
             key={c.href}
             href={c.href}
@@ -388,6 +429,7 @@ export function LandingHeroSearch() {
               'flex h-10 items-center rounded-[4px] bg-white px-4 py-2 text-sm font-normal leading-5 text-[#0a0a0a]',
               'transition-[transform,opacity] duration-150 hover:opacity-90 active:scale-[0.98]',
               'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#264b82]',
+              index > 1 && 'hidden lg:flex',
               'lg:h-auto lg:px-4 lg:py-4 lg:text-base lg:leading-5',
             )}
           >

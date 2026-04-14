@@ -5,9 +5,9 @@ import type { FormInstance } from 'antd/es/form';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
-import { Calendar, MapPin, SlidersHorizontal } from 'lucide-react';
+import { Calendar, LoaderCircle, MapPin, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@electrotech/ui';
 import { SEARCH_FILTER_CATEGORIES } from '@/lib/search/filter-categories';
@@ -60,8 +60,8 @@ function pickDefinedFilterFields(values: Partial<FilterFormValues>): Partial<Fil
 }
 
 function useDebouncedMergedFilterPush(
-  compactForm: FormInstance<FilterFormValues>,
-  fullForm: FormInstance<FilterFormValues>,
+  compactForm: FormInstance<FilterFormValues> | null,
+  fullForm: FormInstance<FilterFormValues> | null,
   state: SearchUrlState,
   delayMs: number,
   priceSliderMax: number,
@@ -85,8 +85,8 @@ function useDebouncedMergedFilterPush(
       const base = stateRef.current;
       const merged: FilterFormValues = {
         ...urlStateToFilterValues(base, priceSliderMax),
-        ...pickDefinedFilterFields(fullForm.getFieldsValue(true)),
-        ...pickDefinedFilterFields(compactForm.getFieldsValue(true)),
+        ...(fullForm ? pickDefinedFilterFields(fullForm.getFieldsValue(true)) : {}),
+        ...(compactForm ? pickDefinedFilterFields(compactForm.getFieldsValue(true)) : {}),
       };
       router.push(searchPath(buildNextState(base, merged, priceSliderMax)));
     }, delayMs);
@@ -460,8 +460,11 @@ function SearchFiltersSidebarInner({
   const [compactForm] = Form.useForm<FilterFormValues>();
   const [fullForm] = Form.useForm<FilterFormValues>();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isFiltersUpdating, setIsFiltersUpdating] = useState(false);
   /** Ant Design Drawer + Portal при forceRender даёт расхождение SSR/гидрации — монтируем только на клиенте. */
   const [drawerMounted, setDrawerMounted] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const resetHref = searchPath(resetFiltersKeepQuery(state));
   const fk = serializeFilterKey(state);
   const schedulePush = useDebouncedMergedFilterPush(
@@ -475,6 +478,18 @@ function SearchFiltersSidebarInner({
   useEffect(() => {
     setDrawerMounted(true);
   }, []);
+
+  useEffect(() => {
+    setIsFiltersUpdating(false);
+  }, [pathname, searchParams]);
+
+  const schedulePushWithStatus = useCallback(() => {
+    if (isFiltersUpdating) {
+      return;
+    }
+    setIsFiltersUpdating(true);
+    schedulePush();
+  }, [isFiltersUpdating, schedulePush]);
 
   useEffect(() => {
     const v = urlStateToFilterValues(state, priceSliderMax);
@@ -504,15 +519,24 @@ function SearchFiltersSidebarInner({
             Фильтры
           </Typography.Title>
         </div>
-        <Link href={resetHref} className="shrink-0 text-sm font-normal leading-normal text-brand hover:underline">
+        <Link
+          href={resetHref}
+          className="shrink-0 text-sm font-normal leading-normal text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
+        >
           Сбросить
         </Link>
       </div>
+      {isFiltersUpdating ? (
+        <div className="mt-3 inline-flex items-center gap-2 text-xs text-ink-secondary" aria-live="polite">
+          <LoaderCircle className="size-3.5 animate-spin" strokeWidth={2} aria-hidden />
+          Обновляем результаты...
+        </div>
+      ) : null}
 
       <div className="scrollbar-filters mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden pr-0.5">
         <FiltersFormCompact
           form={compactForm}
-          schedulePush={schedulePush}
+          schedulePush={schedulePushWithStatus}
           priceSliderMax={priceSliderMax}
         />
 
@@ -522,7 +546,7 @@ function SearchFiltersSidebarInner({
             size="large"
             block
             onClick={() => setDrawerOpen(true)}
-            className="!h-[53px] !rounded-[4px] !border-0 !bg-brand-muted !px-12 !font-semibold !text-brand hover:!border-brand hover:!text-brand"
+            className="!h-[53px] !rounded-[4px] !border-0 !bg-brand-muted !px-12 !font-semibold !text-brand transition-colors hover:!border-brand hover:!text-brand focus-visible:!outline-none focus-visible:!ring-2 focus-visible:!ring-brand/35 focus-visible:!ring-offset-1 active:!bg-[#dbe9ff]"
           >
             Все фильтры
           </Button>
@@ -547,7 +571,7 @@ function SearchFiltersSidebarInner({
             body: { paddingTop: 16, paddingBottom: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' },
           }}
         >
-          <FiltersFormFull form={fullForm} schedulePush={schedulePush} priceSliderMax={priceSliderMax} />
+          <FiltersFormFull form={fullForm} schedulePush={schedulePushWithStatus} priceSliderMax={priceSliderMax} />
         </Drawer>
       ) : null}
     </div>
@@ -569,16 +593,30 @@ export function SearchAllFiltersDrawer({
   state: SearchUrlState;
   priceSliderMax: number;
 }) {
-  const [dummyCompact] = Form.useForm<FilterFormValues>();
   const [fullForm] = Form.useForm<FilterFormValues>();
   const [drawerMounted, setDrawerMounted] = useState(false);
+  const [isFiltersUpdating, setIsFiltersUpdating] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const fk = serializeFilterKey(state);
   const cap = priceSliderMax > 0 ? Math.floor(priceSliderMax) : DEFAULT_PRICE_SLIDER_MAX;
-  const schedulePush = useDebouncedMergedFilterPush(dummyCompact, fullForm, state, FILTER_DEBOUNCE_MS, cap);
+  const schedulePush = useDebouncedMergedFilterPush(null, fullForm, state, FILTER_DEBOUNCE_MS, cap);
 
   useEffect(() => {
     setDrawerMounted(true);
   }, []);
+
+  useEffect(() => {
+    setIsFiltersUpdating(false);
+  }, [pathname, searchParams]);
+
+  const schedulePushWithStatus = useCallback(() => {
+    if (isFiltersUpdating) {
+      return;
+    }
+    setIsFiltersUpdating(true);
+    schedulePush();
+  }, [isFiltersUpdating, schedulePush]);
 
   useEffect(() => {
     const v = urlStateToFilterValues(state, cap);
@@ -586,7 +624,8 @@ export function SearchAllFiltersDrawer({
   }, [fk, state, fullForm, cap]);
 
   if (!drawerMounted) {
-    return null;
+    // Keep form instance connected until Drawer mounts to avoid antd warning.
+    return <Form form={fullForm} component={false} />;
   }
 
   return (
@@ -607,7 +646,13 @@ export function SearchAllFiltersDrawer({
         body: { paddingTop: 16, paddingBottom: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' },
       }}
     >
-      <FiltersFormFull form={fullForm} schedulePush={schedulePush} priceSliderMax={cap} />
+      {isFiltersUpdating ? (
+        <div className="mb-3 inline-flex items-center gap-2 text-xs text-ink-secondary" aria-live="polite">
+          <LoaderCircle className="size-3.5 animate-spin" strokeWidth={2} aria-hidden />
+          Обновляем результаты...
+        </div>
+      ) : null}
+      <FiltersFormFull form={fullForm} schedulePush={schedulePushWithStatus} priceSliderMax={cap} />
     </Drawer>
   );
 }

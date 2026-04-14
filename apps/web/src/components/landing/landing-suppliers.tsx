@@ -5,7 +5,7 @@ import { landingAssets } from './assets';
 function SupplierCard({ className }: { className?: string }) {
   return (
     <div
-      className={`group border border-transparent bg-white px-4 py-6 shadow-sm transition-[box-shadow,border-color,transform] duration-200 hover:border-brand/15 hover:shadow-md active:scale-[0.99] lg:h-[185px] lg:px-[23px] lg:pb-0 lg:pt-[30px] ${className ?? ''}`}
+      className={`group h-[174px] bg-white px-4 py-6 lg:h-[185px] lg:px-[23px] lg:pb-0 lg:pt-[30px] ${className ?? ''}`}
     >
       <div className="flex flex-col gap-8 lg:gap-4">
         <div className="flex flex-col gap-2 lg:gap-1">
@@ -14,7 +14,7 @@ function SupplierCard({ className }: { className?: string }) {
           </p>
           <p className="text-sm leading-5 text-[#a7a7a7] lg:text-lg lg:leading-5">ИНН 1234567891</p>
         </div>
-        <div className="inline-flex w-fit bg-brand px-4 py-3 transition-colors duration-150 group-hover:bg-[#1f3d68]">
+        <div className="inline-flex w-fit bg-brand px-4 py-3">
           <span className="text-xs font-semibold uppercase leading-5 text-white lg:text-lg lg:leading-5">
             10 товаров
           </span>
@@ -26,7 +26,7 @@ function SupplierCard({ className }: { className?: string }) {
 
 export function LandingSuppliers() {
   return (
-    <section className="mx-auto mt-12 max-w-[1440px] px-4 pb-16 lg:mt-[49px] lg:px-12 lg:pb-24">
+    <section className="mx-auto mt-8 max-w-[1440px] px-4 pb-16 lg:mt-[49px] lg:px-12 lg:pb-24">
       <div className="mx-auto max-w-[1340px] space-y-8">
         <div className="flex items-start justify-between gap-4">
           <h2 className="max-w-[180px] text-2xl font-semibold uppercase leading-normal tracking-[-0.48px] text-[#262e3f] lg:max-w-none lg:text-[40px] lg:tracking-[-0.8px]">

@@ -26,7 +26,14 @@ export async function SuppliersPageContent({ flatSearchParams }: SuppliersPageCo
   try {
     data = await fetchPublicApiJson<ApiSupplierListResponse>(`/suppliers?${params.toString()}`);
   } catch (e) {
-    error = e instanceof PublicApiError ? 'Сервис временно недоступен.' : 'Не удалось загрузить данные.';
+    if (e instanceof PublicApiError) {
+      error =
+        e.status == null
+          ? 'API недоступен. Проверьте, что backend запущен (обычно http://localhost:4000).'
+          : 'Сервис временно недоступен.';
+    } else {
+      error = 'Не удалось загрузить данные.';
+    }
   }
 
   const query = state.q;

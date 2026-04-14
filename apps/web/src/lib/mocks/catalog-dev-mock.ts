@@ -1070,6 +1070,7 @@ function listProductsMock(sp: URLSearchParams): ApiProductListResponse {
   const { products } = getCatalog();
   const q = sp.get('q') ?? '';
   const category = sp.get('category')?.trim() ?? '';
+  const supplier = sp.get('supplier')?.trim() ?? '';
   const rawSort = sp.get('sort') ?? 'price_asc';
   const sort = MOCK_SORT_KEYS.has(rawSort) ? rawSort : 'price_asc';
   const limit = Math.min(100, Math.max(1, Number.parseInt(sp.get('limit') ?? '20', 10) || 20));
@@ -1086,6 +1087,9 @@ function listProductsMock(sp: URLSearchParams): ApiProductListResponse {
   let rows = products.filter((p) => matchesProductSearch(p, q));
   if (category) {
     rows = rows.filter((p) => p.category?.slug === category);
+  }
+  if (supplier) {
+    rows = rows.filter((p) => p.supplier.slug === supplier);
   }
   if (excludeOnRequest) {
     rows = rows.filter((p) => !isPriceOnRequest(p.price));

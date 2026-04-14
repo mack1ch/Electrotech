@@ -36,10 +36,14 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
     data = listResult.value;
   } else {
     const e = listResult.reason;
-    error =
-      e instanceof PublicApiError
-        ? 'Сервис временно недоступен.'
-        : 'Не удалось загрузить данные.';
+    if (e instanceof PublicApiError) {
+      error =
+        e.status == null
+          ? 'API недоступен. Проверьте, что backend запущен (обычно http://localhost:4000).'
+          : 'Сервис временно недоступен.';
+    } else {
+      error = 'Не удалось загрузить данные.';
+    }
   }
 
   if (metaResult.status === 'fulfilled') {

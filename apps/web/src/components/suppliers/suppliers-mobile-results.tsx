@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { InnSourcesLine } from '@/components/inn-sources-line';
 import type { ApiSupplierRef } from '@/lib/types/catalog';
 
 function dash(v: string | null | undefined): string {
@@ -62,7 +63,13 @@ export function SuppliersMobileResults({ items }: { items: ApiSupplierRef[] }) {
                   <p className="mt-1 text-xs leading-normal text-[#8d8d8d]">{s.warehouseCitiesLine.trim()}</p>
                 ) : null}
                 {s.otherLine?.trim() ? (
-                  <p className="mt-2 text-xs leading-normal text-brand">{s.otherLine.trim()}</p>
+                  <InnSourcesLine
+                    line={s.otherLine}
+                    inn={s.inn}
+                    asChips
+                    className="mt-2"
+                    linkClassName="inline-flex h-7 items-center rounded-[8px] border border-[#dbe4f3] bg-[#f3f7ff] px-2.5 text-[11px] font-medium text-brand transition-colors hover:bg-[#e5efff] hover:text-[#1f3d68] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1 active:bg-[#dbe9ff]"
+                  />
                 ) : null}
               </div>
               <div className="flex min-w-0 flex-col items-start gap-2 text-left text-xs leading-normal">

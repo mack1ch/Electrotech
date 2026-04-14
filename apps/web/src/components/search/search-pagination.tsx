@@ -4,6 +4,7 @@ import { Pagination } from 'antd';
 import { useRouter } from 'next/navigation';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { searchPath } from '@/lib/search/search-params';
+import { useNavigationPending } from '@/lib/ui/use-navigation-pending';
 
 export function SearchPagination({
   state,
@@ -13,6 +14,8 @@ export function SearchPagination({
   total: number;
 }) {
   const router = useRouter();
+  const { runNavigation, isPending } = useNavigationPending();
+  const paginationPending = isPending('search-pagination');
   const pageSize = state.pageSize;
 
   if (total <= pageSize) {
@@ -29,14 +32,17 @@ export function SearchPagination({
         pageSizeOptions={[10, 20, 50, 100]}
         showTotal={(t, range) => `${range[0]}-${range[1]} из ${t}`}
         onChange={(page, ps) => {
-          router.push(
-            searchPath({
-              ...state,
-              page,
-              pageSize: ps ?? pageSize,
-            }),
-          );
+          runNavigation('search-pagination', () => {
+            router.push(
+              searchPath({
+                ...state,
+                page,
+                pageSize: ps ?? pageSize,
+              }),
+            );
+          });
         }}
+        disabled={paginationPending}
       />
     </div>
   );

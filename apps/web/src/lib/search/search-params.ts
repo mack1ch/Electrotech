@@ -25,6 +25,7 @@ export const DEFAULT_PAGE_SIZE = 20;
 
 export type SearchUrlState = {
   q: string;
+  supplier: string;
   sort: SearchSortParam;
   page: number;
   pageSize: number;
@@ -68,6 +69,7 @@ export function flattenSearchParams(
 
 export function parseSearchUrlState(sp: Record<string, string | undefined>): SearchUrlState {
   const q = sp['q']?.trim() ?? '';
+  const supplier = sp['supplier']?.trim() ?? '';
   const sort = parseSearchSort(sp['sort']);
   const page = parsePositiveInt(sp['page'], 1, 10_000);
   const pageSize = parsePositiveInt(sp['pageSize'], DEFAULT_PAGE_SIZE, 100);
@@ -84,6 +86,7 @@ export function parseSearchUrlState(sp: Record<string, string | undefined>): Sea
 
   return {
     q,
+    supplier,
     sort,
     page,
     pageSize,
@@ -107,6 +110,9 @@ export function buildProductsApiQuery(state: SearchUrlState): URLSearchParams {
   });
   if (state.q) {
     params.set('q', state.q);
+  }
+  if (state.supplier) {
+    params.set('supplier', state.supplier);
   }
   if (state.category) {
     params.set('category', state.category);
@@ -137,6 +143,9 @@ export function serializeSearchState(state: SearchUrlState): string {
   const p = new URLSearchParams();
   if (state.q) {
     p.set('q', state.q);
+  }
+  if (state.supplier) {
+    p.set('supplier', state.supplier);
   }
   if (state.sort !== 'price_asc') {
     p.set('sort', state.sort);
@@ -181,6 +190,7 @@ export function resetFiltersKeepQuery(state: SearchUrlState): SearchUrlState {
   return {
     ...state,
     page: 1,
+    supplier: '',
     category: '',
     priceMin: '',
     priceMax: '',
@@ -203,6 +213,7 @@ export function resetFiltersAndQuery(state: SearchUrlState): SearchUrlState {
 export function hasActiveSearchFilters(state: SearchUrlState): boolean {
   return (
     Boolean(state.category) ||
+    Boolean(state.supplier) ||
     state.priceMin !== '' ||
     state.priceMax !== '' ||
     state.minStock !== '' ||

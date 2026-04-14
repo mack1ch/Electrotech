@@ -13,10 +13,18 @@ import {
   tryBeginGeoAttempt,
 } from '@/lib/cities/city-preference';
 
-function matchCityToList(raw: string, cities: string[]): string {
-  const t = raw.trim();
-  if (!t) return DEFAULT_CITY_NAME;
-  const lower = t.toLocaleLowerCase('ru-RU');
+function normalizeCityToken(value: string): string {
+  return value
+    .trim()
+    .replace(/^г(?:ород)?\.?\s+/i, '')
+    .replace(/^city\s+/i, '')
+    .replace(/\s+/g, ' ');
+}
+
+function findCityName(value: string, cities: string[]): string | null {
+  const token = normalizeCityToken(value);
+  if (!token) return null;
+  const lower = token.toLocaleLowerCase('ru-RU');
   const exact = cities.find((c) => c.toLocaleLowerCase('ru-RU') === lower);
   if (exact) return exact;
   const fuzzy = cities.find(
@@ -24,7 +32,20 @@ function matchCityToList(raw: string, cities: string[]): string {
       lower.includes(c.toLocaleLowerCase('ru-RU')) ||
       c.toLocaleLowerCase('ru-RU').includes(lower),
   );
-  return fuzzy ?? t;
+  return fuzzy ?? null;
+}
+
+function matchCityToList(raw: string, cities: string[]): string {
+  const direct = findCityName(raw, cities);
+  if (direct) return direct;
+
+  const parts = raw.split(/[;,]/g).map((part) => part.trim());
+  for (const part of parts) {
+    const matched = findCityName(part, cities);
+    if (matched) return matched;
+  }
+
+  return DEFAULT_CITY_NAME;
 }
 
 type CityPickerProps = {
@@ -149,7 +170,7 @@ export function CityPicker({ variant, className }: CityPickerProps) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <MapPin className={cn('size-4 shrink-0', iconClass)} strokeWidth={2} aria-hidden />
+        {isLanding ? null : <MapPin className={cn('size-4 shrink-0', iconClass)} strokeWidth={2} aria-hidden />}
         <span className="max-w-[9rem] truncate sm:max-w-[12rem]">{city}</span>
         <ChevronDown className={cn('size-4 shrink-0 opacity-90', iconClass)} strokeWidth={2} aria-hidden />
       </button>

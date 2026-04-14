@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ArrowDownAz, ArrowUpZa } from 'lucide-react';
 import Link from 'next/link';
+import { InnSourcesLine } from '@/components/inn-sources-line';
 import {
   suppliersPath,
   toggleSuppliersSort,
@@ -15,45 +15,21 @@ import type { ApiSupplierRef } from '@/lib/types/catalog';
  * Поставщик | Склады | Сайт | Телефон | Почта | Другое (Figma 0:4474 ~1003px).
  * «Другое» — min 196px (−8px к прежним 204px), доли первых колонок чуть выше.
  */
-const GRID_COLS =
-  'minmax(0,1.08fr) minmax(0,0.93fr) minmax(0,1.21fr) minmax(0,1.13fr) minmax(0,1.25fr) minmax(196px,1.05fr)';
+const GRID_COLS = '188px 179px 143px 143px 143px 204px';
 
 const thClass = 'min-w-0 px-6';
-const tdClass = 'min-w-0 max-w-full px-6 py-4 align-top';
-
-function sortDirection(sort: SuppliersSortParam): 'asc' | 'desc' | null {
-  if (sort === 'name_asc') {
-    return 'asc';
-  }
-  if (sort === 'name_desc') {
-    return 'desc';
-  }
-  return null;
-}
-
-function SortIcon({ dir }: { dir: 'asc' | 'desc' | null }) {
-  const stroke = 1.75;
-  if (dir === 'asc') {
-    return <ArrowDownAz className="size-4 shrink-0 text-brand" strokeWidth={stroke} aria-hidden />;
-  }
-  if (dir === 'desc') {
-    return <ArrowUpZa className="size-4 shrink-0 text-brand" strokeWidth={stroke} aria-hidden />;
-  }
-  return <ArrowDownAz className="size-4 shrink-0 text-ink/45" strokeWidth={stroke} aria-hidden />;
-}
+const tdClass = 'min-w-0 max-w-full px-6 py-4';
 
 function ThSortName({ state, label }: { state: SuppliersUrlState; label: ReactNode }) {
   const nextSort = toggleSuppliersSort(state.sort);
   const href = suppliersPath({ ...state, sort: nextSort, page: 1 });
-  const dir = sortDirection(state.sort);
   return (
     <Link
       href={href}
       prefetch={false}
-      className="inline-flex items-center gap-1 font-bold text-ink hover:text-brand"
+      className="inline-flex items-center font-bold text-ink transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
     >
       {label}
-      <SortIcon dir={dir} />
     </Link>
   );
 }
@@ -123,7 +99,7 @@ export function SuppliersResultsTable({
         {items.map((s) => (
           <div
             key={s.id}
-            className="grid min-h-[100px] w-full items-start gap-x-0 border-b border-[#e5e5e5] last:border-b-0"
+            className="grid min-h-[100px] w-full items-center gap-x-0 border-b border-[#e5e5e5] last:border-b-0"
             style={{ gridTemplateColumns: GRID_COLS }}
             role="row"
           >
@@ -144,7 +120,7 @@ export function SuppliersResultsTable({
             <div className={`${tdClass} break-words text-base font-normal leading-normal text-ink`} role="cell">
               {dash(s.warehouseCitiesLine)}
             </div>
-            <div className={`${tdClass} text-sm font-semibold leading-normal text-brand`} role="cell">
+            <div className={`${tdClass} text-center text-sm font-semibold leading-normal text-brand`} role="cell">
               {s.website ? (
                 <a
                   href={s.website.startsWith('http') ? s.website : `https://${s.website}`}
@@ -158,14 +134,23 @@ export function SuppliersResultsTable({
                 '—'
               )}
             </div>
-            <div className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
+            <div className={`${tdClass} break-words text-center text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
               {dash(s.phone)}
             </div>
             <div className={`${tdClass} text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
               <EmailLines line={s.emailsLine} />
             </div>
             <div className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
-              {dash(s.otherLine)}
+              {s.otherLine?.trim() ? (
+                <InnSourcesLine
+                  line={s.otherLine}
+                  inn={s.inn}
+                  className="max-w-full"
+                  linkClassName="text-[#6a7282] transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
+                />
+              ) : (
+                '—'
+              )}
             </div>
           </div>
         ))}

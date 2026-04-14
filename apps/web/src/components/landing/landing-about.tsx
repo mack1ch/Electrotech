@@ -10,15 +10,21 @@ function CatalogButton({ href, children }: { href: string; children: ReactNode }
     <Link
       href={href}
       className={cn(
-        'flex w-full items-center justify-between bg-[#f9fafb] px-[27px] py-7',
-        'text-[19px] font-medium uppercase leading-[25px] text-[#262e3f]',
+        'flex h-16 w-full items-center justify-between bg-[#f9fafb] px-6',
+        'text-base font-medium uppercase leading-[22px] text-[#262e3f]',
         'transition-[background-color,transform] duration-150 hover:bg-[#f0f3f7] active:scale-[0.99]',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#264b82]',
-        'lg:w-[406px] lg:max-w-[406px]',
+        'lg:h-auto lg:w-[406px] lg:max-w-[406px] lg:px-[27px] lg:py-7 lg:text-[19px] lg:leading-[25px]',
       )}
     >
       {children}
-      <Image src={landingAssets.ctaArrow} alt="" width={22} height={22} className="size-[22px] shrink-0" />
+      <Image
+        src={landingAssets.ctaArrow}
+        alt=""
+        width={22}
+        height={22}
+        className="size-[18px] shrink-0 lg:size-[22px]"
+      />
     </Link>
   );
 }
@@ -69,9 +75,8 @@ const aboutVisuals: AboutVisual[] = [
 export function LandingAbout() {
   return (
     <section className="relative bg-white">
-      {/* Слабый «шум» scale-1 по макету 0:148; overflow только здесь — иначе ломается lg:sticky у текстовой колонки */}
       <div
-        className="pointer-events-none absolute inset-0 select-none overflow-hidden"
+        className="pointer-events-none absolute inset-0 hidden select-none overflow-hidden lg:block"
         aria-hidden
       >
         <Image
@@ -84,24 +89,24 @@ export function LandingAbout() {
       </div>
 
       <div className="relative mx-auto max-w-[1440px] px-4 py-14 lg:px-[50px] lg:py-24">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,520px)_636px] lg:gap-x-[184px] lg:gap-y-0">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,520px)_636px] lg:gap-x-[184px] lg:gap-y-0">
           {/* Липкая колонка — 0:150 / 0:149 / кнопки */}
-          <div className="max-w-[520px] space-y-6 lg:sticky lg:top-24 lg:z-10 lg:self-start">
-            <h2 className="max-w-[390px] text-2xl font-semibold uppercase leading-normal tracking-[-0.48px] text-black lg:text-[40px] lg:tracking-[-0.8px]">
+          <div className="max-w-[520px] space-y-4 lg:space-y-6 lg:sticky lg:top-24 lg:z-10 lg:self-start">
+            <h2 className="max-w-[266px] text-2xl font-semibold uppercase leading-normal tracking-[-0.48px] text-black lg:max-w-[390px] lg:text-[40px] lg:tracking-[-0.8px]">
               О сайте электротехника
             </h2>
-            <p className="max-w-[520px] text-sm font-medium leading-normal tracking-[-0.14px] text-[#252d3d] lg:text-xl lg:leading-[25px] lg:tracking-[-0.2px]">
+            <p className="max-w-[266px] text-sm font-medium leading-normal tracking-[-0.14px] text-[#252d3d] lg:max-w-[520px] lg:text-xl lg:leading-[25px] lg:tracking-[-0.2px]">
               На сайте вы сможете найти нужных поставщиков или товары рядом, с понятными сроками доставки, и
               выбрать самый подходящий{' '}
             </p>
-            <div className="flex flex-col gap-3 pt-1">
+            <div className="flex max-w-[343px] flex-col gap-2 pt-1 lg:gap-3">
               <CatalogButton href="/suppliers">В каталог поставщиков</CatalogButton>
               <CatalogButton href="/search">В каталог товаров</CatalogButton>
             </div>
           </div>
 
           {/* Карточки 0:157 / 0:211 / 0:322 — #f9fafb, 636px, интервал 12px */}
-          <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex min-w-0 flex-col gap-4 lg:gap-3">
             {aboutVisuals.map((block) => (
               <figure
                 key={block.src}
@@ -110,19 +115,19 @@ export function LandingAbout() {
                   block.panelHClass,
                 )}
               >
-                <figcaption className="flex min-h-[92px] shrink-0 flex-col justify-start space-y-2 px-[29px] pb-2 pt-6 lg:min-h-[118px] lg:pt-7">
-                  <h3 className="text-base font-semibold uppercase leading-normal text-[#0a0a0a] lg:text-[21px]">
+                  <figcaption className="flex min-h-[112px] shrink-0 flex-col justify-start space-y-1 px-4 pb-2 pt-8 lg:min-h-[118px] lg:space-y-2 lg:px-[29px] lg:pt-7">
+                    <h3 className="text-base font-semibold uppercase leading-normal text-[#0a0a0a] lg:text-[21px]">
                     {block.title}
                   </h3>
-                  <p className="text-sm font-normal leading-normal text-[#6a7282] lg:text-base">
+                    <p className="text-sm font-normal leading-normal text-[#6a7282] lg:text-base">
                     {block.subtitle}
                   </p>
                 </figcaption>
                 {/* Белая панель: одни и те же отступы у всех карточек; скриншоты внутри не тянем под выравнивание контента */}
-                <div className="flex min-h-0 flex-1 flex-col bg-white px-[29px] pb-6 lg:pb-7">
+                <div className="flex min-h-0  flex-col bg-white px-4 pb-4 lg:px-[29px] lg:pb-7">
                   <div
                     className={cn(
-                      'relative min-h-[200px] w-full flex-1 overflow-hidden bg-white lg:min-h-0',
+                      'relative min-h-[200px] w-full flex-1 overflow-hidden bg-white lg:min-h-0 ',
                       block.imageRounded && 'rounded-lg',
                     )}
                   >

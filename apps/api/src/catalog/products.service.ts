@@ -89,6 +89,9 @@ export class ProductsService {
     if (query.category?.trim()) {
       qb.andWhere('c.slug = :slug', { slug: query.category.trim() });
     }
+    if (query.supplier?.trim()) {
+      qb.andWhere('s.slug = :supplierSlug', { supplierSlug: query.supplier.trim() });
+    }
 
     if (query.excludeOnRequest === true) {
       qb.andWhere('p.priceOnRequest = :notOnRequest', { notOnRequest: false });

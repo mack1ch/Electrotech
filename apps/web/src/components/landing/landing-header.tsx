@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { LayoutGrid } from 'lucide-react';
 import { CityPicker } from '@/components/city-picker';
 import { landingAssets } from './assets';
 
@@ -36,16 +35,7 @@ export function LandingHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2 lg:hidden">
-          <Link
-            href="/search"
-            className="flex size-10 items-center justify-center rounded-[10px] bg-brand transition-[transform,background-color,box-shadow] duration-150 hover:bg-[#1f3d68] hover:shadow-md active:scale-[0.97]"
-            aria-label="Каталог товаров"
-          >
-            <LayoutGrid className="size-6 text-white" strokeWidth={1.75} aria-hidden />
-          </Link>
-          <CityPicker variant="landing" className="lg:hidden" />
-        </div>
+        <CityPicker variant="landing" className="lg:hidden" />
 
         <CityPicker variant="landing" className="hidden lg:inline-flex" />
       </div>

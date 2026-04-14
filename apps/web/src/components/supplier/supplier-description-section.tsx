@@ -8,8 +8,8 @@ export function SupplierDescriptionSection({ text, className }: { text: string; 
     <DescriptionReadMoreSection
       text={text}
       className={cn('lg:pb-4', className)}
-      headingClassName="text-lg font-semibold leading-normal text-[#707070] lg:text-[21px]"
-      contentClassName="text-sm leading-normal text-[#6a7282] lg:text-base"
+      headingClassName="text-lg font-semibold leading-normal text-ink lg:text-[21px]"
+      contentClassName="text-sm leading-normal text-[#4a5565] lg:text-base"
     />
   );
 }

@@ -1,21 +1,30 @@
 'use client';
 
 import { Form, Input } from 'antd';
-import { Search } from 'lucide-react';
+import { LoaderCircle, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { searchPath } from '@/lib/search/search-params';
+import { useNavigationPending } from '@/lib/ui/use-navigation-pending';
 
 export function SearchQueryBar({ state }: { state: SearchUrlState }) {
   const router = useRouter();
+  const [form] = Form.useForm<{ q: string }>();
+  const queryValue = Form.useWatch('q', form) ?? '';
+  const hasQuery = queryValue.trim().length > 0;
+  const { runNavigation, isPending } = useNavigationPending();
+  const submitPending = isPending('search-query-submit');
 
   return (
     <Form
+      form={form}
       key={`q-${state.q}-${serialize(state)}`}
       initialValues={{ q: state.q }}
       onFinish={(v) => {
         const q = String(v['q'] ?? '').trim();
-        router.push(searchPath({ ...state, q, page: 1 }));
+        runNavigation('search-query-submit', () => {
+          router.push(searchPath({ ...state, q, page: 1 }));
+        });
       }}
       className="space-y-2"
       requiredMark={false}
@@ -24,22 +33,39 @@ export function SearchQueryBar({ state }: { state: SearchUrlState }) {
         <Form.Item
           name="q"
           noStyle
-          className="!mb-0 min-w-0 flex-1 [&_.ant-form-item-control-input]:min-h-0 [&_.ant-input-affix-wrapper]:!border-0 [&_.ant-input-affix-wrapper]:!shadow-none"
+          className="!mb-0 min-w-0 flex-1 pr-1 [&_.ant-form-item-control-input]:min-h-0 [&_.ant-input-affix-wrapper]:!border-0 [&_.ant-input-affix-wrapper]:!shadow-none"
         >
           <Input
             variant="borderless"
             size="large"
             placeholder="Поиск"
-            className="!px-0 !py-0 !text-base !font-semibold !leading-6 !shadow-none [&_input]:placeholder:font-normal [&_input]:placeholder:text-muted"
+            className="!px-0 !py-0 !pe-3 !text-[18px] !font-medium !leading-6 !shadow-none [&_input]:placeholder:font-normal [&_input]:placeholder:text-muted"
           />
         </Form.Item>
-        <Form.Item noStyle className="!mb-0 ms-2 flex shrink-0 items-center">
+        <Form.Item noStyle className="!mb-0 ms-3 flex shrink-0 items-center gap-1">
+          {hasQuery ? (
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded border-0 bg-transparent p-0 text-ink shadow-none outline-none transition-colors hover:bg-transparent hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 active:bg-transparent"
+              aria-label="Очистить поиск"
+              onClick={() => form.setFieldValue('q', '')}
+              disabled={submitPending}
+            >
+              <X className="size-5" strokeWidth={1.9} aria-hidden />
+            </button>
+          ) : null}
           <button
             type="submit"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded border-0 bg-transparent p-0 text-ink shadow-none outline-none transition-colors hover:bg-transparent hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 active:bg-transparent disabled:pointer-events-none disabled:opacity-40"
             aria-label="Искать"
+            disabled={submitPending}
+            aria-busy={submitPending}
           >
-            <Search className="size-6" strokeWidth={1.75} aria-hidden />
+            {submitPending ? (
+              <LoaderCircle className="size-5 animate-spin" strokeWidth={1.9} aria-hidden />
+            ) : (
+              <Search className="size-6" strokeWidth={1.75} aria-hidden />
+            )}
           </button>
         </Form.Item>
       </div>

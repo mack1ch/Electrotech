@@ -56,13 +56,21 @@ export default async function SupplierDetailPage(props: PageProps) {
       <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-9">
         <SupplierDetailBreadcrumbs supplierName={supplier.name} />
 
-        <header className="mt-2 flex flex-col gap-1 lg:mt-1">
+        <header className="mt-2 flex flex-col gap-3 lg:mt-1">
           <h1 className="text-lg font-normal leading-normal text-ink lg:text-2xl lg:leading-8">{supplier.name}</h1>
           {supplier.legalAddress ? (
             <p className="text-xs leading-normal text-[#4a5565] lg:text-lg lg:text-[#8d8d8d]">
               {supplier.legalAddress}
             </p>
           ) : null}
+          <div className="pt-1">
+            <Link
+              href={`/search?supplier=${encodeURIComponent(supplier.slug)}`}
+              className="inline-flex h-11 items-center justify-center rounded-[6px] bg-brand px-6 text-sm font-semibold text-white transition-colors hover:bg-[#1f3d68] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-2 active:bg-[#17355f]"
+            >
+              Смотреть товары поставщика
+            </Link>
+          </div>
         </header>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1005px)_321px] lg:items-start lg:gap-5">
@@ -76,12 +84,6 @@ export default async function SupplierDetailPage(props: PageProps) {
         {supplier.description ? (
           <SupplierDescriptionSection text={supplier.description} className="mt-8 shadow-sm lg:mt-10" />
         ) : null}
-
-        <p className="mt-10">
-          <Link href="/search" className="text-sm font-medium text-brand hover:underline">
-            Смотреть товары
-          </Link>
-        </p>
       </div>
     </div>
   );

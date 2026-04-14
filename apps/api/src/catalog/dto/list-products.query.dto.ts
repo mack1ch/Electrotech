@@ -49,6 +49,12 @@ export class ListProductsQueryDto {
   @MaxLength(120)
   category?: string;
 
+  /** Supplier slug filter */
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  supplier?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(48)

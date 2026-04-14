@@ -33,13 +33,13 @@ pnpm install
 
 Перед первым запуском API с каталогом: скопируйте [apps/api/.env.example](apps/api/.env.example) в `apps/api/.env` и при необходимости поправьте `DATABASE_URL`. В примере уже включены удобные значения для локальной работы (`WEB_ORIGINS` для web и supplier, `CATALOG_FORCE_SEED=true` для стабильных мок-данных в БД).
 
-Для **web** и **supplier** в репозитории лежат `apps/web/.env.development` и `apps/supplier/.env.development` (`NEXT_PUBLIC_API_URL`, отключение телеметрии Next.js). В `next dev` каталог на web по умолчанию отдаётся **встроенным моком**; реальный Nest нужен, если задать `NEXT_PUBLIC_USE_REAL_API=1` в `apps/web/.env.local`. Если API в dev недоступен, web подставит тот же мок (fallback), пока не установлен `NEXT_PUBLIC_DEV_API_NO_FALLBACK=1`.
+Для **web** и **supplier** в репозитории лежат `apps/web/.env.development` и `apps/supplier/.env.development` (`NEXT_PUBLIC_API_URL`, отключение телеметрии Next.js). Web всегда получает каталог из API (`apps/api`), а демо-данные в dev/VPS приходят из сидов БД на бэкенде.
 
 ### Команды запуска
 
 | Сценарий | Команды |
 | -------- | ------- |
-| **Только публичный фронт** (порт 3000, данные каталога из мока, Postgres не нужен) | `pnpm install` → `pnpm dev:web` |
+| **Только публичный фронт** (порт 3000; нужен запущенный API) | `pnpm install` → `pnpm dev:api` → `pnpm dev:web` |
 | **Фронт + API + Postgres/Redis** (инфра в Docker, приложения на хосте) | Терминал 1: `pnpm dev:db` → Терминал 2: один раз `cp apps/api/.env.example apps/api/.env` → `pnpm dev:api` → Терминал 3: `pnpm dev:web` (при необходимости ещё `pnpm dev:supplier`) |
 | **Все приложения сразу** (web, supplier, api; нужен `apps/api/.env` и поднятая БД) | `pnpm dev:db` → `pnpm dev:apps` |
 | **Всё в Docker** (сборка образов) | Скопируйте [.env.example](.env.example) в `.env` при необходимости → `docker compose up --build` |
@@ -85,7 +85,7 @@ docker compose up --build
 
 1. Скопируйте [.env.vps.example](.env.vps.example) в **`.env`** в корне, задайте `POSTGRES_PASSWORD`, `NEXT_PUBLIC_API_URL` и `WEB_ORIGINS` с **реальным IP/доменом** (как открывает заказчик в браузере).
 2. `docker compose -f docker-compose.vps.yml up -d --build`
-3. Сайт: `http://<хост>:18080`. Первый запуск с пустым томом: `TYPEORM_SYNC=true` поднимает схему, затем API заливает **те же демо-данные**, что в локальном моке/сиде. Чтобы при перезапуске снова обнулить каталог: в `.env` выставьте `CATALOG_DEMO_RESEED=true` (только для демо).
+3. Сайт: `http://<хост>:18080`. Первый запуск с пустым томом: `TYPEORM_SYNC=true` поднимает схему, затем API заливает демо-данные из сидов БД. Чтобы при перезапуске снова обнулить каталог: в `.env` выставьте `CATALOG_DEMO_RESEED=true` (только для демо).
 
 `NEXT_PUBLIC_*` вшивается при **сборке** образа `web`; после смены URL API пересоберите: `docker compose -f docker-compose.vps.yml build web --no-cache`.
 

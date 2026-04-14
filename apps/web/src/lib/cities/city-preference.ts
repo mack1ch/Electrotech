@@ -25,7 +25,12 @@ export function getSelectedCity(): string {
   if (typeof window === 'undefined') return DEFAULT_CITY_NAME;
   try {
     const v = localStorage.getItem(SELECTED_CITY_STORAGE_KEY);
-    return v?.trim() || DEFAULT_CITY_NAME;
+    const normalized = v
+      ?.split(/[;,]/g)[0]
+      ?.trim()
+      .replace(/^г(?:ород)?\.?\s+/i, '')
+      .replace(/\s+/g, ' ');
+    return normalized || DEFAULT_CITY_NAME;
   } catch {
     return DEFAULT_CITY_NAME;
   }

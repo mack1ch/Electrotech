@@ -43,7 +43,7 @@ export function LandingPage() {
         <div className="relative z-10">
           <LandingHeader />
           {/* Отступ под заголовок: центр блока ~231px от верха страницы при высоте шапки 109px (макет 0:28 / 0:73) */}
-          <div className="mx-auto max-w-[1440px] px-4 pb-12 pt-8 lg:px-[50px] lg:pb-20 lg:pt-[54px]">
+          <div className="mx-auto max-w-[1440px] px-4 pb-[120px] pt-[118px] lg:px-[50px] lg:pb-20 lg:pt-[54px]">
             <h1 className="max-w-[20ch] text-[40px] font-semibold uppercase leading-[1.14] tracking-[-1.6px] text-white lg:max-w-[830px] lg:text-[60.705px] lg:leading-[1.14] lg:tracking-[-2.4282px]">
               Найдите идеального
               <br />
@@ -53,7 +53,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 -mt-8 px-0 pb-12 sm:-mt-10 lg:-mt-[108px] lg:pb-20">
+      <div className="relative z-10 -mt-[126px] px-0 pb-12 sm:-mt-[118px] lg:-mt-[108px] lg:pb-20">
         <LandingHeroSearch />
       </div>
 

@@ -2,7 +2,7 @@
 
 import type { MenuProps } from 'antd';
 import { Button, Dropdown } from 'antd';
-import { ArrowDownAz, SlidersHorizontal } from 'lucide-react';
+import { ArrowDownAz, LoaderCircle, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   SUPPLIER_SORT_VALUES,
@@ -11,6 +11,7 @@ import {
   type SuppliersSortParam,
   type SuppliersUrlState,
 } from '@/lib/suppliers/suppliers-params';
+import { useNavigationPending } from '@/lib/ui/use-navigation-pending';
 
 function isSortValue(v: string): v is SuppliersSortParam {
   return (SUPPLIER_SORT_VALUES as readonly string[]).includes(v);
@@ -18,6 +19,8 @@ function isSortValue(v: string): v is SuppliersSortParam {
 
 export function SuppliersMobileToolbar({ state }: { state: SuppliersUrlState }) {
   const router = useRouter();
+  const { runNavigation, isPending } = useNavigationPending();
+  const sortPending = isPending('suppliers-mobile-sort');
 
   const sortMenuItems: MenuProps['items'] = SUPPLIER_SORT_VALUES.map((v) => ({
     key: v,
@@ -33,7 +36,9 @@ export function SuppliersMobileToolbar({ state }: { state: SuppliersUrlState }) 
             selectedKeys: [state.sort],
             onClick: ({ key }) => {
               if (isSortValue(key)) {
-                router.push(suppliersPath({ ...state, sort: key, page: 1 }));
+                runNavigation('suppliers-mobile-sort', () => {
+                  router.push(suppliersPath({ ...state, sort: key, page: 1 }));
+                });
               }
             },
           }}
@@ -41,14 +46,21 @@ export function SuppliersMobileToolbar({ state }: { state: SuppliersUrlState }) 
         >
           <Button
             type="text"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-2 shadow-none"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-2 text-ink shadow-none transition-colors hover:bg-brand-muted hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1 active:bg-[#dbe9ff]"
             aria-label="Сортировка"
-            icon={<ArrowDownAz className="size-5 text-ink" strokeWidth={1.75} />}
+            disabled={sortPending}
+            icon={
+              sortPending ? (
+                <LoaderCircle className="size-5 animate-spin" strokeWidth={1.9} />
+              ) : (
+                <ArrowDownAz className="size-5" strokeWidth={1.75} />
+              )
+            }
           />
         </Dropdown>
         <a
           href="#suppliers-filters"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-2 text-ink shadow-none"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white p-2 text-ink shadow-none transition-colors hover:bg-brand-muted hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1 active:bg-[#dbe9ff]"
           aria-label="Фильтры"
         >
           <SlidersHorizontal className="size-5" strokeWidth={1.75} />
