@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Checkbox,
   Drawer,
   Form,
   InputNumber,
@@ -137,7 +138,9 @@ function buildNextState(
   };
 }
 
-const checkboxRowClass = 'flex items-center gap-1.5 py-0.5';
+/** Единый ряд: чекбокс фиксированного размера + подпись (без «прыгающих» нативных box). */
+const manufacturerRowClass =
+  'flex min-h-[22px] cursor-pointer items-center gap-2 py-0.5 [&_.ant-checkbox]:top-0 [&_.ant-checkbox-inner]:h-4 [&_.ant-checkbox-inner]:w-4 [&_.ant-checkbox-inner]:rounded-[2.5px]';
 
 const formLabelClassName =
   '[&_.ant-form-item-label>label]:!h-auto [&_.ant-form-item-label>label]:!font-semibold [&_.ant-form-item-label>label]:!text-base [&_.ant-form-item-label>label]:!text-ink';
@@ -261,17 +264,16 @@ function FilterFieldsManufacturer({
     >
       <div className="mt-2 flex flex-col gap-2">
         {SEARCH_FILTER_CATEGORIES.map((c) => (
-          <label key={c.slug} className={cn(checkboxRowClass, 'cursor-pointer')}>
-            <input
-              type="checkbox"
+          <label key={c.slug} className={manufacturerRowClass}>
+            <Checkbox
               checked={category === c.slug}
+              className="shrink-0"
               onChange={(e) => {
                 form.setFieldValue('category', e.target.checked ? c.slug : CAT_ALL);
                 schedulePush();
               }}
-              className="size-4 rounded-[2.5px] border border-[#bfc8d8]"
             />
-            <span className="text-base font-normal text-ink">{c.label}</span>
+            <span className="select-none text-base font-normal leading-snug text-ink">{c.label}</span>
           </label>
         ))}
       </div>
@@ -396,15 +398,12 @@ function SearchFiltersSidebarInner({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname]);
+  }, [pathname, fk]);
 
   const schedulePushWithStatus = useCallback(() => {
-    if (isFiltersUpdating) {
-      return;
-    }
     setIsFiltersUpdating(true);
     schedulePush();
-  }, [isFiltersUpdating, schedulePush]);
+  }, [schedulePush]);
 
   useEffect(() => {
     const v = urlStateToFilterValues(state, priceSliderMax);
@@ -535,15 +534,12 @@ export function SearchAllFiltersDrawer({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname]);
+  }, [pathname, fk]);
 
   const schedulePushWithStatus = useCallback(() => {
-    if (isFiltersUpdating) {
-      return;
-    }
     setIsFiltersUpdating(true);
     schedulePush();
-  }, [isFiltersUpdating, schedulePush]);
+  }, [schedulePush]);
 
   useEffect(() => {
     const v = urlStateToFilterValues(state, cap);
@@ -625,5 +621,10 @@ function serializeFilterKey(state: SearchUrlState): string {
     state.priceMin,
     state.priceMax,
     state.pageSize,
+    state.page,
+    state.minStock,
+    state.updatedFrom,
+    state.availability,
+    state.excludeOnRequest ? '1' : '',
   ].join('|');
 }

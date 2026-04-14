@@ -294,12 +294,16 @@ export function SearchMobileFiltersCollapse({
               </div>
               <div className="space-y-2">
                 {SEARCH_FILTER_CATEGORIES.slice(0, 4).map((category) => (
-                  <label key={category.slug} className="flex items-center gap-2 text-base text-[#0a0a0a]">
+                  <label
+                    key={category.slug}
+                    className="flex min-h-[22px] cursor-pointer items-center gap-2 text-base text-[#0a0a0a] [&_.ant-checkbox]:top-0 [&_.ant-checkbox-inner]:h-4 [&_.ant-checkbox-inner]:w-4 [&_.ant-checkbox-inner]:rounded-[2.5px]"
+                  >
                     <Checkbox
+                      className="shrink-0"
                       checked={state.category === category.slug}
                       onChange={(e) => pushPatch({ category: e.target.checked ? category.slug : '' })}
                     />
-                    {category.label}
+                    <span className="select-none leading-snug">{category.label}</span>
                   </label>
                 ))}
               </div>

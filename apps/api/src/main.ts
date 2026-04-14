@@ -1,8 +1,12 @@
 import 'reflect-metadata';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import type { SessionOptions } from 'express-session';
 import { DataSource } from 'typeorm';
@@ -58,6 +62,76 @@ function trustProxyEnabled(): boolean {
     return true;
   }
   return publicApiOrigin()?.startsWith('https:') ?? false;
+}
+
+/**
+ * Статические JS-бандлы AdminJS должны отдаваться до общего `app.use('/admin', …)`:
+ * иначе в связке Nest + Express 5 запросы вида `/admin/frontend/assets/*.js` не доходят
+ * до роутера @adminjs/express и Nest отвечает JSON 404 (как на проде без этого слоя).
+ */
+function mountAdminJsPublicScriptBundles(app: NestExpressApplication): void {
+  const require = createRequire(__filename);
+  const adminEntryPath = require.resolve('adminjs');
+  const requireFromAdmin = createRequire(adminEntryPath);
+  const scriptsDir = path.join(path.dirname(adminEntryPath), 'lib/frontend/assets/scripts');
+  const nodeEnv = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+
+  const sendIfExists =
+    (absolutePath: string) =>
+    (_req: Request, res: Response, next: NextFunction): void => {
+      if (!fs.existsSync(absolutePath)) {
+        next(new Error(`AdminJS static file missing: ${absolutePath}`));
+        return;
+      }
+      res.sendFile(absolutePath, (err) => {
+        if (err) {
+          next(err);
+        }
+      });
+    };
+
+  let designSystemBundle = '';
+  try {
+    const dsEntry = requireFromAdmin.resolve('@adminjs/design-system');
+    designSystemBundle = path.resolve(path.dirname(dsEntry), '..', `bundle.${nodeEnv}.js`);
+  } catch {
+    designSystemBundle = '';
+  }
+
+  const adminJsTmp = (process.env.ADMIN_JS_TMP_DIR?.trim() || '.adminjs').replace(/^\.\//, '') || '.adminjs';
+  const componentsBundlePath = path.resolve(process.cwd(), adminJsTmp, 'bundle.js');
+
+  const scripts = Router();
+  scripts.get('/app.bundle.js', sendIfExists(path.join(scriptsDir, `app-bundle.${nodeEnv}.js`)));
+  scripts.get('/global.bundle.js', sendIfExists(path.join(scriptsDir, `global-bundle.${nodeEnv}.js`)));
+  if (designSystemBundle && fs.existsSync(designSystemBundle)) {
+    scripts.get('/design-system.bundle.js', sendIfExists(designSystemBundle));
+  }
+  scripts.get('/components.bundle.js', (_req, res, next) => {
+    if (fs.existsSync(componentsBundlePath)) {
+      res.sendFile(path.resolve(componentsBundlePath), (err) => {
+        if (err) {
+          next(err);
+        }
+      });
+      return;
+    }
+    if (process.env.NODE_ENV === 'production' && process.env.ADMIN_JS_SKIP_BUNDLE === 'true') {
+      res
+        .type('application/javascript; charset=utf-8')
+        .send(
+          '(function(){window.AdminJS=window.AdminJS||{};window.AdminJS.Components=window.AdminJS.Components||Object.create(null);})();',
+        );
+      return;
+    }
+    next(
+      new Error(
+        'AdminJS components.bundle.js is missing; set ADMIN_JS_SKIP_BUNDLE=true with no custom components, or run the AdminJS bundler.',
+      ),
+    );
+  });
+
+  app.use('/admin/frontend/assets', scripts);
 }
 
 async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
@@ -133,6 +207,8 @@ async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
     next();
   }
 
+  // Сначала отдаём статические бандлы по более узкому префиксу, затем весь роутер AdminJS.
+  mountAdminJsPublicScriptBundles(app);
   // Важно вызывать до `listen()`: иначе middleware окажется после финального 404 Nest — `GET /admin` не дойдёт до AdminJS.
   app.use('/admin', normalizeAdminMountedUrl, router as Parameters<NestExpressApplication['use']>[1]);
 }
