@@ -3,7 +3,7 @@
 import { Button, Drawer, Select, Typography } from 'antd';
 import { ChevronRight, LoaderCircle, MapPin, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@electrotech/ui';
 import { SUPPLIER_WAREHOUSE_CITIES } from '@/lib/suppliers/supplier-warehouse-cities';
@@ -206,7 +206,6 @@ function SuppliersFiltersSidebarInner({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [isFiltersUpdating, setIsFiltersUpdating] = useState(false);
@@ -219,7 +218,7 @@ function SuppliersFiltersSidebarInner({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   const push = (patch: Partial<SuppliersUrlState>) => {
     if (isFiltersUpdating) {

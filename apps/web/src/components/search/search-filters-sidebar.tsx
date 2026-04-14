@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import { Calendar, LoaderCircle, MapPin, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@electrotech/ui';
 import { SEARCH_FILTER_CATEGORIES } from '@/lib/search/filter-categories';
@@ -464,7 +464,6 @@ function SearchFiltersSidebarInner({
   /** Ant Design Drawer + Portal при forceRender даёт расхождение SSR/гидрации — монтируем только на клиенте. */
   const [drawerMounted, setDrawerMounted] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const resetHref = searchPath(resetFiltersKeepQuery(state));
   const fk = serializeFilterKey(state);
   const schedulePush = useDebouncedMergedFilterPush(
@@ -481,7 +480,7 @@ function SearchFiltersSidebarInner({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   const schedulePushWithStatus = useCallback(() => {
     if (isFiltersUpdating) {
@@ -597,7 +596,6 @@ export function SearchAllFiltersDrawer({
   const [drawerMounted, setDrawerMounted] = useState(false);
   const [isFiltersUpdating, setIsFiltersUpdating] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const fk = serializeFilterKey(state);
   const cap = priceSliderMax > 0 ? Math.floor(priceSliderMax) : DEFAULT_PRICE_SLIDER_MAX;
   const schedulePush = useDebouncedMergedFilterPush(null, fullForm, state, FILTER_DEBOUNCE_MS, cap);
@@ -608,7 +606,7 @@ export function SearchAllFiltersDrawer({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   const schedulePushWithStatus = useCallback(() => {
     if (isFiltersUpdating) {

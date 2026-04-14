@@ -1,25 +1,33 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState, useTransition } from 'react';
 
 export function useNavigationPending() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [isTransitionPending, startTransition] = useTransition();
-  const routeKey = useMemo(
-    () => `${pathname ?? ''}?${searchParams?.toString() ?? ''}`,
-    [pathname, searchParams],
-  );
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (timeoutRef.current != null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setPendingKey(null);
-  }, [routeKey]);
+  }, [pathname]);
 
   const runNavigation = (key: string, fn: () => void) => {
     setPendingKey(key);
     startTransition(fn);
+    if (timeoutRef.current != null) {
+      clearTimeout(timeoutRef.current);
+    }
+    // Query-only navigation does not always change pathname; avoid sticky loading.
+    timeoutRef.current = setTimeout(() => {
+      setPendingKey((current) => (current === key ? null : current));
+      timeoutRef.current = null;
+    }, 2000);
   };
 
   const isPending = (key?: string) => {
