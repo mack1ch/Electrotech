@@ -16,20 +16,26 @@ function adminSessionSecret(raw: string): string {
   return createHash('sha256').update(raw, 'utf8').digest('hex');
 }
 
-async function setupAdminPanel(app: INestApplication): Promise<void> {
-  const adminJsModuleName = 'adminjs';
-  const adminJsTypeormModuleName = '@adminjs/typeorm';
-  const adminJsExpressModuleName = '@adminjs/express';
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment -- динамические ESM-импорты AdminJS без строгих типов */
-  const [{ default: AdminJS }, { Database, Resource }, AdminJSExpress] = await Promise.all([
-    import(adminJsModuleName),
-    import(adminJsTypeormModuleName),
-    import(adminJsExpressModuleName),
-  ]);
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+/** ESM-only пакеты AdminJS: при `module: commonjs` `import('pkg')` превращается в `require('pkg')` и падает на `exports`. */
+function esmDynamicImport(specifier: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call -- runtime `import()` при emit CJS (не `require` к ESM-only пакетам)
+  return new Function('specifier', 'return import(specifier)')(specifier) as Promise<unknown>;
+}
 
-  // Adapter packages export loose types, runtime API is stable.
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+async function setupAdminPanel(app: INestApplication): Promise<void> {
+  const [adminJsMod, typeormMod, expressMod] = await Promise.all([
+    esmDynamicImport('adminjs'),
+    esmDynamicImport('@adminjs/typeorm'),
+    esmDynamicImport('@adminjs/express'),
+  ]);
+  type AdminJsCtor = {
+    registerAdapter: (a: { Database: unknown; Resource: unknown }) => void;
+    new (options: unknown): unknown;
+  };
+  const AdminJS = (adminJsMod as { default: AdminJsCtor }).default;
+  const { Database, Resource } = typeormMod as { Database: unknown; Resource: unknown };
+  const AdminJSExpress = expressMod as { buildAuthenticatedRouter: (...args: unknown[]) => unknown };
+
   AdminJS.registerAdapter({ Database, Resource });
 
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@local.dev';
@@ -38,7 +44,6 @@ async function setupAdminPanel(app: INestApplication): Promise<void> {
     process.env.ADMIN_SESSION_SECRET ?? 'replace-me-with-admin-session-secret',
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const admin = new AdminJS({
     rootPath: '/admin',
     resources: [Supplier, Category, Product],
@@ -47,7 +52,6 @@ async function setupAdminPanel(app: INestApplication): Promise<void> {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const router = AdminJSExpress.buildAuthenticatedRouter(
     admin,
     {
