@@ -47,6 +47,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-electrotech}:${POSTGRES_PASSWORD:-electrotech_vps_change_me}@postgres:5432/${POSTGRES_DB:-electrotech}
       REDIS_URL: redis://redis:6379
       WEB_ORIGINS: ${WEB_ORIGINS:-http://127.0.0.1:18080,http://localhost:18080}
+      # Публичный URL API (https://… без пути) — для логов AdminJS и согласованности с браузером; можно не задавать, если задан NEXT_PUBLIC_API_URL ниже
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       # AdminJS: http://<хост>:${VPS_API_PORT:-18081}/admin — задайте свои значения в корневом .env
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local.dev}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
