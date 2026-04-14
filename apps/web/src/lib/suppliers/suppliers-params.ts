@@ -51,7 +51,11 @@ export function flattenSuppliersParams(
 
 export function parseSuppliersUrlState(sp: Record<string, string | undefined>): SuppliersUrlState {
   const q = sp['q']?.trim() ?? '';
-  const category = sp['category']?.trim() ?? '';
+  const category = (sp['category'] ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(',');
   const warehouse = sp['warehouse']?.trim() ?? '';
   const sort = parseSuppliersSort(sp['sort']);
   const page = parsePositiveInt(sp['page'], 1, 10_000);

@@ -68,7 +68,7 @@ export function SuppliersResultsTable({
     <div className="hidden w-full overflow-x-auto rounded-[10px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:block">
       <div className="min-w-[1000px] border-b border-[#e5e5e5] bg-white" role="rowgroup">
         <div
-          className="grid min-h-[81px] w-full items-center gap-x-0 text-base font-bold text-ink"
+          className="grid min-h-[72px] w-full items-center gap-x-0 text-base font-bold text-ink"
           style={{ gridTemplateColumns: GRID_COLS }}
           role="row"
         >

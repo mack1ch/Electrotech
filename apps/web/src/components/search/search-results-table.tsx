@@ -79,7 +79,7 @@ export function SearchResultsTable({
     <div className="hidden w-full overflow-x-auto rounded-lg bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:block">
       <div className="w-full min-w-[1003px] border-b border-[#e5e5e5] bg-white" role="rowgroup">
         <div
-          className="grid h-[81px] w-full items-center text-base font-bold text-ink"
+          className="grid h-[72px] w-full items-center text-base font-bold text-ink"
           style={{
             gridTemplateColumns: SEARCH_TABLE_GRID_COLS,
           }}

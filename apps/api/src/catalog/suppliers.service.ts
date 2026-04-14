@@ -67,9 +67,15 @@ export class SuppliersService {
     }
 
     if (query.category?.trim()) {
-      qb.innerJoin('s.products', 'p').innerJoin('p.category', 'c').andWhere('c.slug = :catSlug', {
-        catSlug: query.category.trim(),
-      });
+      const categorySlugs = query.category
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (categorySlugs.length > 0) {
+        qb.innerJoin('s.products', 'p')
+          .innerJoin('p.category', 'c')
+          .andWhere('c.slug IN (:...catSlugs)', { catSlugs: categorySlugs });
+      }
     }
 
     const sortDir = query.sort === 'name_desc' ? 'DESC' : 'ASC';

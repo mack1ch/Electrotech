@@ -71,34 +71,47 @@ function CategoryFilterBlock({
   onPickCategory,
 }: {
   state: SuppliersUrlState;
-  onPickCategory: (category: string) => void;
+  onPickCategory: (category: string[]) => void;
 }) {
-  const active = state.category;
+  const activeSet = new Set(
+    state.category
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(SUPPLIER_FILTER_CATEGORIES.map((category) => [category.slug, false])),
   );
 
   useEffect(() => {
-    if (!active) {
+    const selected = new Set(
+      state.category
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
+    if (selected.size === 0) {
       return;
     }
     const matched = SUPPLIER_FILTER_CATEGORIES.find(
       (category) =>
-        category.slug === active || category.children?.some((child) => child.slug === active),
+        selected.has(category.slug) || category.children?.some((child) => selected.has(child.slug)),
     );
     if (matched) {
       setExpanded((prev) => ({ ...prev, [matched.slug]: true }));
     }
-  }, [active]);
+  }, [state.category]);
 
   return (
     <div className="flex flex-col gap-1">
       <button
         type="button"
-        onClick={() => onPickCategory('')}
+        onClick={() => onPickCategory([])}
         className={cn(
           'flex w-full items-center rounded-[10px] px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1',
-          active === '' ? 'bg-[#e5efff] font-semibold text-brand' : 'font-normal text-ink hover:bg-neutral-50',
+          activeSet.size === 0
+            ? 'bg-[#e5efff] font-semibold text-brand'
+            : 'font-normal text-ink hover:bg-neutral-50',
         )}
       >
         Все категории
@@ -106,13 +119,19 @@ function CategoryFilterBlock({
       {SUPPLIER_FILTER_CATEGORIES.map((c) => {
         const hasChildren = Boolean(c.children?.length);
         const isExpanded = expanded[c.slug] ?? false;
-        const sel = active === c.slug;
+        const sel = activeSet.has(c.slug);
         return (
           <div key={c.slug} className="rounded-[10px]">
             <button
               type="button"
               onClick={() => {
-                onPickCategory(c.slug);
+                const next = new Set(activeSet);
+                if (next.has(c.slug)) {
+                  next.delete(c.slug);
+                } else {
+                  next.add(c.slug);
+                }
+                onPickCategory(Array.from(next));
                 if (hasChildren) {
                   setExpanded((prev) => ({ ...prev, [c.slug]: !isExpanded }));
                 }
@@ -138,12 +157,20 @@ function CategoryFilterBlock({
             {hasChildren && isExpanded ? (
               <div className="flex flex-col gap-1 px-2 pb-2">
                 {c.children!.map((child) => {
-                  const childSel = active === child.slug;
+                  const childSel = activeSet.has(child.slug);
                   return (
                     <button
                       key={`${c.slug}-${child.label}`}
                       type="button"
-                      onClick={() => onPickCategory(child.slug)}
+                      onClick={() => {
+                        const next = new Set(activeSet);
+                        if (next.has(child.slug)) {
+                          next.delete(child.slug);
+                        } else {
+                          next.add(child.slug);
+                        }
+                        onPickCategory(Array.from(next));
+                      }}
                       className={cn(
                         'w-full rounded-[8px] px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1',
                         childSel
@@ -218,7 +245,7 @@ function SuppliersFiltersSidebarInner({
 
   useEffect(() => {
     setIsFiltersUpdating(false);
-  }, [pathname]);
+  }, [pathname, state.category, state.warehouse, state.sort, state.page, state.pageSize, state.q]);
 
   const push = (patch: Partial<SuppliersUrlState>) => {
     if (isFiltersUpdating) {
@@ -260,7 +287,10 @@ function SuppliersFiltersSidebarInner({
       ) : null}
 
       <div className="scrollbar-filters mt-4 flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto overflow-x-hidden pr-0.5">
-        <CategoryFilterBlock state={state} onPickCategory={(category) => push({ category })} />
+        <CategoryFilterBlock
+          state={state}
+          onPickCategory={(categories) => push({ category: categories.join(',') })}
+        />
 
         <WarehouseField state={state} onChange={(warehouse) => push({ warehouse })} />
 
@@ -310,7 +340,10 @@ function SuppliersFiltersSidebarInner({
                 }}
               />
             </div>
-            <CategoryFilterBlock state={state} onPickCategory={(category) => push({ category })} />
+            <CategoryFilterBlock
+              state={state}
+              onPickCategory={(categories) => push({ category: categories.join(',') })}
+            />
             <WarehouseField state={state} onChange={(warehouse) => push({ warehouse })} />
           </div>
         </Drawer>
