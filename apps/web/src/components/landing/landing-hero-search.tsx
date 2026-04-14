@@ -108,11 +108,15 @@ function formatPriceRu(n: number): string {
     .replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
 }
 
-function parseDigitsOnly(value: string | undefined): string {
+function parseDigitsOnly(value: string | undefined): number {
   if (!value) {
-    return '';
+    return 0;
   }
-  return value.replace(/[^\d]/g, '');
+  const digits = value.replace(/[^\d]/g, '');
+  if (!digits) {
+    return 0;
+  }
+  return Number.parseInt(digits, 10);
 }
 
 export function LandingHeroSearch() {

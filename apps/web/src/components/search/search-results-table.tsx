@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ArrowDownAz, ArrowUpZa, Calendar, Package } from 'lucide-react';
+import { ArrowDownAz, ArrowUpZa } from 'lucide-react';
 import Link from 'next/link';
 import {
   displayArticle,
@@ -14,8 +14,7 @@ import type { SearchSortParam, SearchTableSortColumn, SearchUrlState } from '@/l
 import { searchPath, toggleColumnSort } from '@/lib/search/search-params';
 import type { ApiProduct } from '@/lib/types/catalog';
 
-/** Пропорции колонок как в макете (188+195+143+113+143+221 = 1003), растягиваются на ширину контейнера. */
-const SEARCH_TABLE_GRID_COLS = 'minmax(0,188fr) minmax(0,195fr) minmax(0,143fr) minmax(0,113fr) minmax(0,143fr) minmax(0,221fr)';
+const SEARCH_TABLE_GRID_COLS = 'minmax(0,2.2fr) minmax(0,1.2fr) minmax(0,1fr) minmax(0,0.95fr) minmax(0,1.3fr) minmax(0,1fr)';
 
 function sortDirection(sort: SearchSortParam, col: SearchTableSortColumn): 'asc' | 'desc' | null {
   const asc = `${col}_asc` as SearchSortParam;
@@ -86,22 +85,22 @@ export function SearchResultsTable({
           role="row"
         >
           <div className="px-6" role="columnheader">
-            <ThPlain>Поставщик</ThPlain>
+            <ThPlain>Наименование</ThPlain>
           </div>
           <div className="px-6" role="columnheader">
-            <ThPlain>Товар</ThPlain>
+            <ThPlain>Производитель</ThPlain>
           </div>
-          <div className="flex justify-end px-6" role="columnheader">
-            <ThPlain>Артикул</ThPlain>
+          <div className="px-6" role="columnheader">
+            <ThSortLink state={state} column="stock" label="Наличие" />
           </div>
           <div className="px-6" role="columnheader">
             <ThSortLink state={state} column="price" label="Цена" />
           </div>
           <div className="px-6" role="columnheader">
-            <ThSortLink state={state} column="stock" label={<span>Наличие<span className="tracking-tight">, шт</span></span>} />
+            <ThPlain>Поставщик</ThPlain>
           </div>
           <div className="px-8" role="columnheader">
-            <ThSortLink state={state} column="updated" label="Последнее обновление" />
+            <ThSortLink state={state} column="updated" label="Дата обновления" />
           </div>
         </div>
       </div>
@@ -126,6 +125,32 @@ function SearchTableRow({ product: p }: { product: ApiProduct }) {
       role="row"
     >
       <div className="px-6 py-4 text-base font-normal text-ink" role="cell">
+        <Link href={`/product/${p.slug}`} className="block hover:text-brand">
+          {lines ? (
+            <>
+              <span className="block leading-normal">{lines[0]}</span>
+              <span className="block leading-normal">{lines[1]}</span>
+            </>
+          ) : (
+            p.name
+          )}
+        </Link>
+        <div className="mt-2">
+          <span className="inline-flex items-center rounded-[6px] border border-brand/45 bg-brand/5 px-2 py-0.5 text-xs font-semibold leading-normal text-brand">
+            Арт.: {displayArticle(p)}
+          </span>
+        </div>
+      </div>
+      <div className="px-6 py-4 text-sm font-normal leading-normal text-[#4a5565]" role="cell">
+        {p.category?.name ?? '—'}
+      </div>
+      <div className="px-6 py-4 text-sm font-normal leading-normal text-[#4a5565]" role="cell">
+        {formatStockUnits(p.stockQuantity ?? 0)} шт
+      </div>
+      <div className="px-6 py-4 text-sm font-normal leading-normal text-[#4a5565]" role="cell">
+        {formatTablePriceRub(p.price)}
+      </div>
+      <div className="px-6 py-4 text-sm font-normal leading-normal text-ink" role="cell">
         <Link
           href={`/suppliers/${p.supplier.slug}`}
           className="hover:text-brand hover:underline"
@@ -134,35 +159,7 @@ function SearchTableRow({ product: p }: { product: ApiProduct }) {
           {p.supplier.name}
         </Link>
       </div>
-      <div className="px-6 py-4 text-base font-normal text-ink" role="cell">
-        {lines ? (
-          <Link href={`/product/${p.slug}`} className="block hover:text-brand">
-            <span className="block leading-normal">{lines[0]}</span>
-            <span className="block leading-normal">{lines[1]}</span>
-          </Link>
-        ) : (
-          <Link href={`/product/${p.slug}`} className="hover:text-brand">
-            {p.name}
-          </Link>
-        )}
-      </div>
-      <div
-        className="px-6 py-4 text-right text-sm font-normal text-[#4a5565]"
-        role="cell"
-      >
-        {displayArticle(p)}
-      </div>
-      <div className="px-6 py-4 text-sm font-normal text-[#4a5565]" role="cell">
-        {formatTablePriceRub(p.price)}
-      </div>
-      <div className="px-6 py-4" role="cell">
-        <span className="inline-flex items-center gap-1 text-sm text-[#4a5565]">
-          <Package className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-          {formatStockUnits(p.stockQuantity ?? 0)}
-        </span>
-      </div>
-      <div className="flex items-center gap-2 px-8 py-4 text-sm text-[#4a5565]" role="cell">
-        <Calendar className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+      <div className="px-8 py-4 text-sm text-[#4a5565]" role="cell">
         {formatTableDate(p.lastUpdatedAt ?? null)}
       </div>
     </div>
