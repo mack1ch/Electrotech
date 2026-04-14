@@ -51,6 +51,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local.dev}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-electrotech-vps-admin-session-secret-change-in-env-file}
+      # AdminJS в production по умолчанию собирает «user components» через Rollup/Babel.
+      # У нас только ресурсы TypeORM без кастомного React — пропускаем бандл (стабильнее на VPS).
+      # Чтобы снова включить бандл: ADMIN_JS_SKIP_BUNDLE=false и зависимость @babel/plugin-syntax-import-assertions в api.
+      ADMIN_JS_SKIP_BUNDLE: '${ADMIN_JS_SKIP_BUNDLE:-true}'
       # Демо: создать таблицы без миграций (для продакшена позже — миграции и TYPEORM_SYNC=false)
       TYPEORM_SYNC: 'true'
       # Первый старт с пустой БД: сид и так выполнится. true = очистить каталог и залить моки снова
