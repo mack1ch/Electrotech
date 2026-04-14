@@ -3,7 +3,6 @@ import { createHash } from 'node:crypto';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import type { RequestHandler } from 'express';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { Category } from './catalog/entities/category.entity';
@@ -27,8 +26,11 @@ function esmDynamicImport(specifier: string): Promise<unknown> {
 async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
   const dataSource = app.get(DataSource);
   /* AdminJS @adminjs/typeorm опирается на Active Record (`getRepository` на классе сущности). */
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- BaseEntity.useDataSource
   Supplier.useDataSource(dataSource);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   Category.useDataSource(dataSource);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   Product.useDataSource(dataSource);
 
   const [adminJsMod, typeormMod, expressMod] = await Promise.all([
@@ -76,9 +78,8 @@ async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
     },
   );
 
-  // Явно вешаем на нативный Express: так маршрут гарантированно в том же стеке, что и публичный API (важно за nginx).
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.use('/admin', router as RequestHandler);
+  // Важно вызывать до `listen()`: иначе middleware окажется после финального 404 Nest — `GET /admin` не дойдёт до AdminJS.
+  app.use('/admin', router as Parameters<NestExpressApplication['use']>[1]);
 }
 
 async function bootstrap(): Promise<void> {
@@ -103,10 +104,7 @@ async function bootstrap(): Promise<void> {
   });
 
   const port = process.env.API_PORT ?? '4000';
-  await app.listen(port);
-  bootstrapLogger.log(`API listening on http://0.0.0.0:${port}`);
 
-  // После listen: healthcheck видит /health даже если AdminJS не поднялся (логируем причину).
   try {
     await setupAdminPanel(app);
     bootstrapLogger.log(`AdminJS panel: http://0.0.0.0:${port}/admin`);
@@ -115,6 +113,9 @@ async function bootstrap(): Promise<void> {
     const stack = err instanceof Error ? err.stack : undefined;
     bootstrapLogger.error(`AdminJS failed to initialize; API continues without /admin: ${message}`, stack);
   }
+
+  await app.listen(port);
+  bootstrapLogger.log(`API listening on http://0.0.0.0:${port}`);
 }
 
 void bootstrap();
