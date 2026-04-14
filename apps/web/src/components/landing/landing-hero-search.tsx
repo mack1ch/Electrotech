@@ -108,6 +108,13 @@ function formatPriceRu(n: number): string {
     .replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
 }
 
+function parseDigitsOnly(value: string | undefined): string {
+  if (!value) {
+    return '';
+  }
+  return value.replace(/[^\d]/g, '');
+}
+
 export function LandingHeroSearch() {
   const router = useRouter();
   const [form] = Form.useForm<LandingSearchFormValues>();
@@ -174,6 +181,7 @@ export function LandingHeroSearch() {
             max={priceSliderMax}
             controls={false}
             variant="borderless"
+            parser={parseDigitsOnly}
             placeholder="от"
             className="!min-w-0 !flex-1 !bg-transparent !text-base !text-[#0a0a0a] [&_.ant-input-number-input]:!text-[#0a0a0a] [&_.ant-input-number-input::placeholder]:!text-[#a7a7a7]"
           />
@@ -185,6 +193,7 @@ export function LandingHeroSearch() {
             max={priceSliderMax}
             controls={false}
             variant="borderless"
+            parser={parseDigitsOnly}
             placeholder="до"
             className="!min-w-0 !flex-1 !bg-transparent !text-base !text-[#0a0a0a] [&_.ant-input-number-input::placeholder]:!text-[#a7a7a7]"
           />
@@ -215,9 +224,18 @@ export function LandingHeroSearch() {
               value={[minVal, maxVal]}
               onChange={(pair) => {
                 const [a, b] = pair as [number, number];
+                const nextMin = clampPriceSlider(a, priceSliderMax);
+                const nextMax = clampPriceSlider(b, priceSliderMax);
+                const currentMin = form.getFieldValue('priceMin') as number | null | undefined;
+                const currentMax = form.getFieldValue('priceMax') as number | null | undefined;
+
+                if (currentMin === nextMin && currentMax === nextMax) {
+                  return;
+                }
+
                 form.setFieldsValue({
-                  priceMin: clampPriceSlider(a, priceSliderMax),
-                  priceMax: clampPriceSlider(b, priceSliderMax),
+                  priceMin: nextMin,
+                  priceMax: nextMax,
                 });
               }}
               tooltip={{ formatter: (val) => (val != null ? `${val.toLocaleString('ru-RU')} ₽` : '') }}
@@ -322,68 +340,77 @@ export function LandingHeroSearch() {
                   getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
                   popupRender={() => pricePanel}
                 >
-                  <div className="relative flex h-[52px] min-w-0 cursor-pointer items-center rounded-[4px] bg-[#f9fafb] px-4 transition-[background-color] duration-150 hover:bg-[#f4f6f8] lg:hidden">
-                    <Form.Item
-                      noStyle
-                      shouldUpdate={(p, c) => p.priceMin !== c.priceMin || p.priceMax !== c.priceMax}
+                  <div className="min-w-0">
+                    <div className="relative flex h-[52px] min-w-0 cursor-pointer items-center rounded-[4px] bg-[#f9fafb] px-4 transition-[background-color] duration-150 hover:bg-[#f4f6f8] lg:hidden">
+                      <Form.Item
+                        noStyle
+                        shouldUpdate={(p, c) => p.priceMin !== c.priceMin || p.priceMax !== c.priceMax}
+                      >
+                        {() => {
+                          const rawMin = form.getFieldValue('priceMin') as number | null | undefined;
+                          const rawMax = form.getFieldValue('priceMax') as number | null | undefined;
+                          let minVal =
+                            typeof rawMin === 'number' && !Number.isNaN(rawMin)
+                              ? clampPriceSlider(rawMin, priceSliderMax)
+                              : 0;
+                          let maxVal =
+                            typeof rawMax === 'number' && !Number.isNaN(rawMax)
+                              ? clampPriceSlider(rawMax, priceSliderMax)
+                              : priceSliderMax;
+                          if (minVal > maxVal) {
+                            [minVal, maxVal] = [maxVal, minVal];
+                          }
+                          return (
+                            <span className="flex w-full items-center justify-between gap-2 text-base">
+                              <span className={minVal > 0 ? 'text-[#0a0a0a]' : 'text-[#a7a7a7]'}>
+                                {formatPriceRu(minVal)}
+                              </span>
+                              <span className="text-[#a7a7a7]" aria-hidden>
+                                —
+                              </span>
+                              <span className={maxVal < priceSliderMax ? 'text-[#0a0a0a]' : 'text-[#a7a7a7]'}>
+                                {formatPriceRu(maxVal)}
+                              </span>
+                            </span>
+                          );
+                        }}
+                      </Form.Item>
+                    </div>
+                    <div
+                      className="relative hidden h-[52px] cursor-text items-center gap-3 rounded-[4px] bg-[#f9fafb] px-4 lg:flex"
+                      onClick={() => setPriceDropdownOpen(true)}
                     >
-                      {() => {
-                        const rawMin = form.getFieldValue('priceMin') as number | null | undefined;
-                        const rawMax = form.getFieldValue('priceMax') as number | null | undefined;
-                        let minVal =
-                          typeof rawMin === 'number' && !Number.isNaN(rawMin)
-                            ? clampPriceSlider(rawMin, priceSliderMax)
-                            : 0;
-                        let maxVal =
-                          typeof rawMax === 'number' && !Number.isNaN(rawMax)
-                            ? clampPriceSlider(rawMax, priceSliderMax)
-                            : priceSliderMax;
-                        if (minVal > maxVal) {
-                          [minVal, maxVal] = [maxVal, minVal];
-                        }
-                        return (
-                          <span className="flex w-full items-center justify-between gap-2 text-base">
-                            <span className={minVal > 0 ? 'text-[#0a0a0a]' : 'text-[#a7a7a7]'}>
-                              {formatPriceRu(minVal)}
-                            </span>
-                            <span className="text-[#a7a7a7]" aria-hidden>
-                              —
-                            </span>
-                            <span className={maxVal < priceSliderMax ? 'text-[#0a0a0a]' : 'text-[#a7a7a7]'}>
-                              {formatPriceRu(maxVal)}
-                            </span>
-                          </span>
-                        );
-                      }}
-                    </Form.Item>
+                      <Form.Item name="priceMin" noStyle>
+                        <InputNumber
+                          min={0}
+                          max={priceSliderMax}
+                          controls={false}
+                          variant="borderless"
+                          parser={parseDigitsOnly}
+                          placeholder="0"
+                          onFocus={() => setPriceDropdownOpen(true)}
+                          className="!w-[68px] !bg-transparent !text-base !text-[#0a0a0a] [&_.ant-input-number-input]:!text-[#0a0a0a] [&_.ant-input-number-input::placeholder]:!text-[#a7a7a7]"
+                        />
+                      </Form.Item>
+                      <span className="text-base text-[#a7a7a7]" aria-hidden>
+                        —
+                      </span>
+                      <Form.Item name="priceMax" noStyle>
+                        <InputNumber
+                          min={0}
+                          max={priceSliderMax}
+                          controls={false}
+                          variant="borderless"
+                          parser={parseDigitsOnly}
+                          placeholder={formatPriceRu(priceSliderMax)}
+                          onFocus={() => setPriceDropdownOpen(true)}
+                          className="!w-[88px] !bg-transparent !text-right !text-base !text-[#0a0a0a] [&_.ant-input-number-input]:!text-right [&_.ant-input-number-input]:!text-[#0a0a0a] [&_.ant-input-number-input::placeholder]:!text-[#a7a7a7]"
+                        />
+                      </Form.Item>
+                      <span className="pointer-events-none absolute inset-x-9 bottom-0 h-px bg-[#264b82]" aria-hidden />
+                    </div>
                   </div>
                 </Dropdown>
-                <div className="relative hidden h-[52px] items-center gap-3 rounded-[4px] bg-[#f9fafb] px-4 lg:flex">
-                  <Form.Item name="priceMin" noStyle>
-                    <InputNumber
-                      min={0}
-                      max={priceSliderMax}
-                      controls={false}
-                      variant="borderless"
-                      placeholder="0"
-                      className="!w-[68px] !bg-transparent !text-base !text-[#a7a7a7] [&_.ant-input-number-input]:!text-[#a7a7a7]"
-                    />
-                  </Form.Item>
-                  <span className="text-base text-[#a7a7a7]" aria-hidden>
-                    —
-                  </span>
-                  <Form.Item name="priceMax" noStyle>
-                    <InputNumber
-                      min={0}
-                      max={priceSliderMax}
-                      controls={false}
-                      variant="borderless"
-                      placeholder={formatPriceRu(priceSliderMax)}
-                      className="!w-[88px] !bg-transparent !text-right !text-base !text-[#a7a7a7] [&_.ant-input-number-input]:!text-right [&_.ant-input-number-input]:!text-[#a7a7a7]"
-                    />
-                  </Form.Item>
-                  <span className="pointer-events-none absolute inset-x-9 bottom-0 h-px bg-[#264b82]" aria-hidden />
-                </div>
               </Form.Item>
             </div>
 
