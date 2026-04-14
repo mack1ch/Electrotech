@@ -6,8 +6,7 @@ import * as path from 'node:path';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { Router } from 'express';
-import type { NextFunction, Request, Response } from 'express';
+import type { Application, NextFunction, Request, Response } from 'express';
 import type { SessionOptions } from 'express-session';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -101,13 +100,17 @@ function mountAdminJsPublicScriptBundles(app: NestExpressApplication): void {
   const adminJsTmp = (process.env.ADMIN_JS_TMP_DIR?.trim() || '.adminjs').replace(/^\.\//, '') || '.adminjs';
   const componentsBundlePath = path.resolve(process.cwd(), adminJsTmp, 'bundle.js');
 
-  const scripts = Router();
-  scripts.get('/app.bundle.js', sendIfExists(path.join(scriptsDir, `app-bundle.${nodeEnv}.js`)));
-  scripts.get('/global.bundle.js', sendIfExists(path.join(scriptsDir, `global-bundle.${nodeEnv}.js`)));
+  const expressApp = app.getHttpAdapter().getInstance() as Application;
+  const mount = (relPath: string, handler: (req: Request, res: Response, next: NextFunction) => void) => {
+    expressApp.get(`/admin/frontend/assets${relPath}`, handler);
+  };
+
+  mount('/app.bundle.js', sendIfExists(path.join(scriptsDir, `app-bundle.${nodeEnv}.js`)));
+  mount('/global.bundle.js', sendIfExists(path.join(scriptsDir, `global-bundle.${nodeEnv}.js`)));
   if (designSystemBundle && fs.existsSync(designSystemBundle)) {
-    scripts.get('/design-system.bundle.js', sendIfExists(designSystemBundle));
+    mount('/design-system.bundle.js', sendIfExists(designSystemBundle));
   }
-  scripts.get('/components.bundle.js', (_req, res, next) => {
+  mount('/components.bundle.js', (_req, res, next) => {
     if (fs.existsSync(componentsBundlePath)) {
       res.sendFile(path.resolve(componentsBundlePath), (err) => {
         if (err) {
@@ -130,8 +133,6 @@ function mountAdminJsPublicScriptBundles(app: NestExpressApplication): void {
       ),
     );
   });
-
-  app.use('/admin/frontend/assets', scripts);
 }
 
 async function setupAdminPanel(app: NestExpressApplication): Promise<void> {
