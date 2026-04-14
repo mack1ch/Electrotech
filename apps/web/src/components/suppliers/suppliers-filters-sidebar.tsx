@@ -331,7 +331,7 @@ export function SuppliersFiltersSidebar({
   }
 
   return (
-    <aside className="hidden w-full shrink-0 lg:sticky lg:top-6 lg:block lg:w-[321px] lg:self-start">
+    <aside className="hidden w-full shrink-0 lg:sticky lg:top-6 lg:block lg:w-[281px] lg:self-start">
       <SuppliersFiltersSidebarInner state={state} />
     </aside>
   );

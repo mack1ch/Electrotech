@@ -3,9 +3,11 @@ import type { ApiSupplierBranch } from '@/lib/types/catalog';
 
 export function SupplierBranchesSection({
   branches,
+  supplierSlug,
   className,
 }: {
   branches: ApiSupplierBranch[];
+  supplierSlug: string;
   className?: string;
 }) {
   if (branches.length === 0) {
@@ -24,7 +26,9 @@ export function SupplierBranchesSection({
             <div className="flex flex-col gap-2">
               <div>
                 <h3 className="text-lg font-semibold text-ink lg:text-[21px]">{b.city}</h3>
-                <p className="mt-1 text-sm leading-5 text-ink lg:text-lg lg:leading-5">{b.address}</p>
+                <p className="mt-1 text-sm leading-5 text-ink lg:text-lg lg:leading-5">
+                  {b.address}
+                </p>
               </div>
               <div className="text-base leading-5 text-[#a7a7a7]">
                 <p className="mb-0">{b.hoursWeekday}</p>
@@ -32,7 +36,7 @@ export function SupplierBranchesSection({
               </div>
             </div>
             <Link
-              href="/search"
+              href={`/search?supplier=${encodeURIComponent(supplierSlug)}&supplierCity=${encodeURIComponent(b.city)}`}
               className="inline-flex w-fit items-center justify-center rounded-lg bg-[#0a0a0a] px-3 py-2 text-xs font-normal text-white lg:px-4 lg:py-3 lg:text-lg lg:leading-5"
               prefetch={false}
             >

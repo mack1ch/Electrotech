@@ -8,6 +8,7 @@ import {
   type ProductDetailExtension,
   type SupplierPortalBadge,
 } from './product-detail.extensions';
+import { SUPPLIER_DETAIL_BY_SLUG } from './supplier-detail.extensions';
 
 export type ProductListItem = {
   id: string;
@@ -91,6 +92,16 @@ export class ProductsService {
     }
     if (query.supplier?.trim()) {
       qb.andWhere('s.slug = :supplierSlug', { supplierSlug: query.supplier.trim() });
+    }
+    if (query.supplierCity?.trim()) {
+      const city = query.supplierCity.trim().toLowerCase();
+      const matchingSlugs = Object.entries(SUPPLIER_DETAIL_BY_SLUG)
+        .filter(([, ext]) => (ext.branches ?? []).some((b) => b.city.toLowerCase() === city))
+        .map(([slug]) => slug);
+      if (matchingSlugs.length === 0) {
+        return { items: [], total: 0 };
+      }
+      qb.andWhere('s.slug IN (:...supplierCitySlugs)', { supplierCitySlugs: matchingSlugs });
     }
 
     if (query.excludeOnRequest === true) {

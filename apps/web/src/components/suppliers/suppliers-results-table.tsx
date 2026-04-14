@@ -2,20 +2,17 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { InnSourcesLine } from '@/components/inn-sources-line';
 import {
   suppliersPath,
   toggleSuppliersSort,
-  type SuppliersSortParam,
   type SuppliersUrlState,
 } from '@/lib/suppliers/suppliers-params';
 import type { ApiSupplierRef } from '@/lib/types/catalog';
 
 /**
- * Поставщик | Склады | Сайт | Телефон | Почта | Другое (Figma 0:4474 ~1003px).
- * «Другое» — min 196px (−8px к прежним 204px), доли первых колонок чуть выше.
+ * Поставщик | Склады | Сайт | Телефон | Почта.
  */
-const GRID_COLS = '188px 179px 143px 143px 143px 204px';
+const GRID_COLS = '224px 220px 184px 184px 184px';
 
 const thClass = 'min-w-0 px-6';
 const tdClass = 'min-w-0 max-w-full px-6 py-4';
@@ -90,9 +87,6 @@ export function SuppliersResultsTable({
           <div className={thClass} role="columnheader">
             Почта
           </div>
-          <div className={thClass} role="columnheader">
-            Другое
-          </div>
         </div>
       </div>
       <div className="min-w-[1000px]" role="rowgroup">
@@ -117,10 +111,16 @@ export function SuppliersResultsTable({
                 ) : null}
               </div>
             </div>
-            <div className={`${tdClass} break-words text-base font-normal leading-normal text-ink`} role="cell">
+            <div
+              className={`${tdClass} break-words text-base font-normal leading-normal text-ink`}
+              role="cell"
+            >
               {dash(s.warehouseCitiesLine)}
             </div>
-            <div className={`${tdClass} text-sm font-semibold leading-normal text-brand`} role="cell">
+            <div
+              className={`${tdClass} text-sm font-semibold leading-normal text-brand`}
+              role="cell"
+            >
               {s.website ? (
                 <a
                   href={s.website.startsWith('http') ? s.website : `https://${s.website}`}
@@ -134,23 +134,17 @@ export function SuppliersResultsTable({
                 '—'
               )}
             </div>
-            <div className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
+            <div
+              className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`}
+              role="cell"
+            >
               {dash(s.phone)}
             </div>
-            <div className={`${tdClass} text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
+            <div
+              className={`${tdClass} text-sm font-normal leading-normal text-[#6a7282]`}
+              role="cell"
+            >
               <EmailLines line={s.emailsLine} />
-            </div>
-            <div className={`${tdClass} break-words text-sm font-normal leading-normal text-[#6a7282]`} role="cell">
-              {s.otherLine?.trim() ? (
-                <InnSourcesLine
-                  line={s.otherLine}
-                  inn={s.inn}
-                  className="max-w-full"
-                  linkClassName="text-[#6a7282] transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
-                />
-              ) : (
-                '—'
-              )}
             </div>
           </div>
         ))}

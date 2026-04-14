@@ -40,7 +40,7 @@ export async function SuppliersPageContent({ flatSearchParams }: SuppliersPageCo
 
   return (
     <div className="bg-[#f4f5f9] pb-16 pt-3 lg:pt-10">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-2 px-4 sm:px-6 lg:flex-row lg:items-start lg:gap-5 lg:px-9">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-2 px-4 sm:px-6 lg:flex-row lg:items-start lg:gap-4 lg:px-9">
         <SuppliersFiltersSidebar state={state} />
 
         <div className="min-w-0 w-full flex-1">

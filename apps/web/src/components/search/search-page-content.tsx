@@ -9,7 +9,10 @@ import { SearchQueryBar } from '@/components/search/search-query-bar';
 import { SearchResultsTable } from '@/components/search/search-results-table';
 import { SearchSortControl } from '@/components/search/search-sort';
 import { fetchPublicApiJson, PublicApiError } from '@/lib/api/public-api';
-import { buildProductsApiQuery, flattenSearchParams, parseSearchUrlState } from '@/lib/search/search-params';
+import {
+  buildProductsApiQuery,
+  parseSearchUrlState,
+} from '@/lib/search/search-params';
 import type { ApiProductListResponse, ApiProductPriceFilterMeta } from '@/lib/types/catalog';
 
 const DEFAULT_PRICE_SLIDER_MAX = 99000;
@@ -57,7 +60,7 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
 
   return (
     <div className="bg-[#f4f5f9] pb-16 pt-3 lg:pt-10">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-start lg:gap-5 lg:px-9">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-start lg:gap-4 lg:px-9">
         <SearchFiltersSidebar state={state} priceSliderMax={priceSliderMax} />
 
         <div className="min-w-0 w-full flex-1">
@@ -86,7 +89,8 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
                     <>Найдено товаров: {data.total}</>
                   ) : (
                     <>
-                      Показано товаров: {data.total}. Уточните запрос в поле ниже, чтобы сузить выбор.
+                      Показано товаров: {data.total}. Уточните запрос в поле ниже, чтобы сузить
+                      выбор.
                     </>
                   )
                 ) : null}

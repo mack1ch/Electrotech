@@ -26,6 +26,7 @@ export const DEFAULT_PAGE_SIZE = 20;
 export type SearchUrlState = {
   q: string;
   supplier: string;
+  supplierCity: string;
   sort: SearchSortParam;
   page: number;
   pageSize: number;
@@ -70,6 +71,7 @@ export function flattenSearchParams(
 export function parseSearchUrlState(sp: Record<string, string | undefined>): SearchUrlState {
   const q = sp['q']?.trim() ?? '';
   const supplier = sp['supplier']?.trim() ?? '';
+  const supplierCity = sp['supplierCity']?.trim() ?? '';
   const sort = parseSearchSort(sp['sort']);
   const page = parsePositiveInt(sp['page'], 1, 10_000);
   const pageSize = parsePositiveInt(sp['pageSize'], DEFAULT_PAGE_SIZE, 100);
@@ -87,6 +89,7 @@ export function parseSearchUrlState(sp: Record<string, string | undefined>): Sea
   return {
     q,
     supplier,
+    supplierCity,
     sort,
     page,
     pageSize,
@@ -113,6 +116,9 @@ export function buildProductsApiQuery(state: SearchUrlState): URLSearchParams {
   }
   if (state.supplier) {
     params.set('supplier', state.supplier);
+  }
+  if (state.supplierCity) {
+    params.set('supplierCity', state.supplierCity);
   }
   if (state.category) {
     params.set('category', state.category);
@@ -146,6 +152,9 @@ export function serializeSearchState(state: SearchUrlState): string {
   }
   if (state.supplier) {
     p.set('supplier', state.supplier);
+  }
+  if (state.supplierCity) {
+    p.set('supplierCity', state.supplierCity);
   }
   if (state.sort !== 'price_asc') {
     p.set('sort', state.sort);
@@ -191,6 +200,7 @@ export function resetFiltersKeepQuery(state: SearchUrlState): SearchUrlState {
     ...state,
     page: 1,
     supplier: '',
+    supplierCity: '',
     category: '',
     priceMin: '',
     priceMax: '',
@@ -214,6 +224,7 @@ export function hasActiveSearchFilters(state: SearchUrlState): boolean {
   return (
     Boolean(state.category) ||
     Boolean(state.supplier) ||
+    Boolean(state.supplierCity) ||
     state.priceMin !== '' ||
     state.priceMax !== '' ||
     state.minStock !== '' ||

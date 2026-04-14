@@ -55,6 +55,12 @@ export class ListProductsQueryDto {
   @MaxLength(120)
   supplier?: string;
 
+  /** Supplier branch city filter */
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  supplierCity?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(48)
