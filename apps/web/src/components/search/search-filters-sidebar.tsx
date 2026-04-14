@@ -316,6 +316,7 @@ function FiltersFormCompact({
       layout="vertical"
       requiredMark={false}
       colon={false}
+      onFinish={() => undefined}
       onValuesChange={() => schedulePush()}
       className={formLabelClassName}
     >
@@ -347,6 +348,7 @@ function FiltersFormFull({
       layout="vertical"
       requiredMark={false}
       colon={false}
+      onFinish={() => undefined}
       onValuesChange={() => schedulePush()}
       className={formLabelClassName}
     >

@@ -1,19 +1,13 @@
+import { Suspense } from 'react';
+import { CatalogResultsAreaFallback } from '@/components/catalog/catalog-results-area-fallback';
 import { SearchBreadcrumbs } from '@/components/search/search-breadcrumbs';
-import { SearchEmptyState } from '@/components/search/search-empty-state';
 import { SearchFiltersSidebar } from '@/components/search/search-filters-sidebar';
-import { SearchMobileFiltersCollapse } from '@/components/search/search-mobile-filters-collapse';
-import { SearchMobileResults } from '@/components/search/search-mobile-results';
-import { SearchMobileToolbar } from '@/components/search/search-mobile-toolbar';
-import { SearchPagination } from '@/components/search/search-pagination';
 import { SearchQueryBar } from '@/components/search/search-query-bar';
-import { SearchResultsTable } from '@/components/search/search-results-table';
+import { SearchResultsProductBlock } from '@/components/search/search-results-product-block';
 import { SearchSortControl } from '@/components/search/search-sort';
-import { fetchPublicApiJson, PublicApiError } from '@/lib/api/public-api';
-import {
-  buildProductsApiQuery,
-  parseSearchUrlState,
-} from '@/lib/search/search-params';
-import type { ApiProductListResponse, ApiProductPriceFilterMeta } from '@/lib/types/catalog';
+import { fetchPublicApiJson } from '@/lib/api/public-api';
+import { parseSearchUrlState, serializeSearchState } from '@/lib/search/search-params';
+import type { ApiProductPriceFilterMeta } from '@/lib/types/catalog';
 
 const DEFAULT_PRICE_SLIDER_MAX = 99000;
 
@@ -21,39 +15,22 @@ type SearchPageContentProps = {
   flatSearchParams: Record<string, string | undefined>;
 };
 
-/** Асинхронная выдача: при смене query Suspense показывает fallback, пока идут запросы к API. */
+/**
+ * Оболочка страницы поиска: метаданные цен для слайдера + фильтры без пересоздания при смене выдачи.
+ * Список товаров — во внутреннем Suspense с ключом по состоянию URL.
+ */
 export async function SearchPageContent({ flatSearchParams }: SearchPageContentProps) {
   const state = parseSearchUrlState(flatSearchParams);
-
-  let data: ApiProductListResponse | null = null;
-  let error: string | null = null;
   let priceSliderMax = DEFAULT_PRICE_SLIDER_MAX;
 
-  const params = buildProductsApiQuery(state);
-  const [listResult, metaResult] = await Promise.allSettled([
-    fetchPublicApiJson<ApiProductListResponse>(`/products?${params.toString()}`),
-    fetchPublicApiJson<ApiProductPriceFilterMeta>('/product-price-filter-meta'),
-  ]);
-
-  if (listResult.status === 'fulfilled') {
-    data = listResult.value;
-  } else {
-    const e = listResult.reason;
-    if (e instanceof PublicApiError) {
-      error =
-        e.status == null
-          ? 'API недоступен. Проверьте, что backend запущен (обычно http://localhost:4000).'
-          : 'Сервис временно недоступен.';
-    } else {
-      error = 'Не удалось загрузить данные.';
-    }
-  }
-
-  if (metaResult.status === 'fulfilled') {
-    const m = metaResult.value.priceMax;
+  try {
+    const meta = await fetchPublicApiJson<ApiProductPriceFilterMeta>('/product-price-filter-meta');
+    const m = meta.priceMax;
     if (Number.isFinite(m) && m > 0) {
       priceSliderMax = Math.trunc(m);
     }
+  } catch {
+    // оставляем DEFAULT_PRICE_SLIDER_MAX
   }
 
   const query = state.q;
@@ -81,20 +58,6 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
                   <>Результаты поиска</>
                 )}
               </h1>
-              <p className="text-xs leading-5 text-[#4a5565] lg:text-sm lg:leading-6">
-                {error ? (
-                  <span className="text-red-600">{error}</span>
-                ) : data ? (
-                  query ? (
-                    <>Найдено товаров: {data.total}</>
-                  ) : (
-                    <>
-                      Показано товаров: {data.total}. Уточните запрос в поле ниже, чтобы сузить
-                      выбор.
-                    </>
-                  )
-                ) : null}
-              </p>
             </div>
           </div>
 
@@ -105,22 +68,15 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
             </div>
           </div>
 
-          {data && data.items.length > 0 ? <SearchMobileToolbar state={state} /> : null}
-
-          <div className="mt-2 lg:mt-6">
-            {error ? null : data && data.items.length > 0 ? (
-              <>
-                <SearchResultsTable items={data.items} state={state} />
-                <SearchMobileResults items={data.items} />
-                <div id="search-filters" className="scroll-mt-28 lg:hidden">
-                  <SearchMobileFiltersCollapse state={state} priceSliderMax={priceSliderMax} />
-                </div>
-                <SearchPagination state={state} total={data.total} />
-              </>
-            ) : data && data.items.length === 0 ? (
-              <SearchEmptyState hasQuery={Boolean(query)} state={state} />
-            ) : null}
-          </div>
+          <Suspense
+            key={serializeSearchState(state) || '_'}
+            fallback={<CatalogResultsAreaFallback />}
+          >
+            <SearchResultsProductBlock
+              flatSearchParams={flatSearchParams}
+              priceSliderMax={priceSliderMax}
+            />
+          </Suspense>
         </div>
       </div>
     </div>
