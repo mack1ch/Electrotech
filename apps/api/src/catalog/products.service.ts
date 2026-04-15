@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ListProductsQueryDto } from './dto/list-products.query.dto';
 import { Product } from './entities/product.entity';
-import {
-  PRODUCT_DETAIL_BY_SLUG,
-  type ProductDetailExtension,
-  type SupplierPortalBadge,
+import { Supplier } from './entities/supplier.entity';
+import type {
+  ProductDetailOfferSeed,
+  ProductDetailSpec,
+  ProductDetailSupplierCardSeed,
+  SupplierPortalBadge,
 } from './product-detail.extensions';
-import { SUPPLIER_DETAIL_BY_SLUG } from './supplier-detail.extensions';
+import { supplierBranchesFromDb } from './supplier-branches.util';
 
 export type ProductListItem = {
   id: string;
@@ -73,6 +75,8 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly products: Repository<Product>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
   ) {}
 
   async list(query: ListProductsQueryDto): Promise<{
@@ -101,9 +105,10 @@ export class ProductsService {
     }
     if (query.supplierCity?.trim()) {
       const city = query.supplierCity.trim().toLowerCase();
-      const matchingSlugs = Object.entries(SUPPLIER_DETAIL_BY_SLUG)
-        .filter(([, ext]) => (ext.branches ?? []).some((b) => b.city.toLowerCase() === city))
-        .map(([slug]) => slug);
+      const allSuppliers = await this.suppliers.find();
+      const matchingSlugs = allSuppliers
+        .filter((sup) => supplierBranchesFromDb(sup).some((b) => b.city.toLowerCase() === city))
+        .map((sup) => sup.slug);
       if (matchingSlugs.length === 0) {
         return { items: [], total: 0 };
       }
@@ -221,52 +226,69 @@ export class ProductsService {
       return null;
     }
     const base = this.toListItem(p);
-    const ext = PRODUCT_DETAIL_BY_SLUG[slug] ?? {};
-    return this.toDetailItem(base, p, ext);
+    return this.toDetailItem(base, p);
   }
 
-  private toDetailItem(
-    base: ProductListItem,
-    p: Product,
-    ext: ProductDetailExtension,
-  ): ProductDetailItem {
-    const specifications = ext.specifications ?? [];
-    const manufacturer =
-      ext.manufacturer ?? (p.manufacturer ? p.manufacturer.name : null);
+  private toDetailItem(base: ProductListItem, p: Product): ProductDetailItem {
+    const specifications = this.parseSpecifications(p);
+    const cardSeed = this.parseSupplierCardSeed(p);
     const supplierCard: ProductSupplierCard = {
-      companyName: ext.supplierCard?.companyName ?? base.supplier.name,
+      companyName: cardSeed.companyName ?? base.supplier.name,
       slug: base.supplier.slug,
-      address: ext.supplierCard?.address ?? null,
-      website: ext.supplierCard?.website ?? null,
-      phone: ext.supplierCard?.phone ?? null,
-      inn: ext.supplierCard?.inn ?? null,
-      innSourcesLine: ext.supplierCard?.innSourcesLine ?? null,
-      onPortalSince: ext.supplierCard?.onPortalSince ?? null,
-      onPortalBadge: ext.supplierCard?.onPortalBadge ?? null,
+      address: cardSeed.address ?? null,
+      website: cardSeed.website ?? null,
+      phone: cardSeed.phone ?? null,
+      inn: cardSeed.inn ?? null,
+      innSourcesLine: cardSeed.innSourcesLine ?? null,
+      onPortalSince: cardSeed.onPortalSince ?? null,
+      onPortalBadge: cardSeed.onPortalBadge ?? null,
     };
-    const offers: ProductOfferRow[] =
-      ext.offers?.map((o) => ({
-        supplierName: o.supplierName,
-        supplierSlug: o.supplierSlug,
-        price: o.price,
-        warehouseLines: o.warehouseLines,
-        stockQuantity: o.stockQuantity,
-        minOrderQuantity: o.minOrderQuantity,
-        lastUpdatedAt: o.lastUpdatedAt,
-        phone: o.phone,
-        email: o.email,
-        availabilityLine: o.availabilityLine ?? null,
-      })) ?? [this.buildDefaultOffer(base)];
+    const offers = this.parseOffers(p, base);
 
     return {
       ...base,
-      priceMax: ext.priceMax ?? null,
-      manufacturer,
-      description: ext.description ?? null,
+      priceMax: p.priceMaxDisplay,
+      manufacturer: p.manufacturer ? p.manufacturer.name : null,
+      description: p.description,
       specifications,
       supplierCard,
       offers,
     };
+  }
+
+  private parseSpecifications(p: Product): ProductDetailSpec[] {
+    const raw = p.specificationsJson;
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+    return raw as ProductDetailSpec[];
+  }
+
+  private parseSupplierCardSeed(p: Product): Partial<ProductDetailSupplierCardSeed> {
+    const raw = p.supplierCardJson;
+    if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+      return {};
+    }
+    return raw as Partial<ProductDetailSupplierCardSeed>;
+  }
+
+  private parseOffers(p: Product, base: ProductListItem): ProductOfferRow[] {
+    const raw = p.offersJson;
+    if (!Array.isArray(raw) || raw.length === 0) {
+      return [this.buildDefaultOffer(base)];
+    }
+    return (raw as ProductDetailOfferSeed[]).map((o) => ({
+      supplierName: o.supplierName,
+      supplierSlug: o.supplierSlug,
+      price: o.price,
+      warehouseLines: o.warehouseLines,
+      stockQuantity: o.stockQuantity,
+      minOrderQuantity: o.minOrderQuantity,
+      lastUpdatedAt: o.lastUpdatedAt,
+      phone: o.phone,
+      email: o.email,
+      availabilityLine: o.availabilityLine ?? null,
+    }));
   }
 
   private buildDefaultOffer(base: ProductListItem): ProductOfferRow {

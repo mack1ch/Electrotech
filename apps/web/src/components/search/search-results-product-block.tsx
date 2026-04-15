@@ -4,6 +4,10 @@ import { SearchMobileResults } from '@/components/search/search-mobile-results';
 import { SearchMobileToolbar } from '@/components/search/search-mobile-toolbar';
 import { SearchPagination } from '@/components/search/search-pagination';
 import { SearchResultsTable } from '@/components/search/search-results-table';
+import {
+  rootCategoriesSorted,
+  type CatalogFilterLists,
+} from '@/lib/catalog/load-catalog-filter-options';
 import { fetchPublicApiJson, PublicApiError } from '@/lib/api/public-api';
 import { buildProductsApiQuery, parseSearchUrlState } from '@/lib/search/search-params';
 import type { ApiProductListResponse } from '@/lib/types/catalog';
@@ -11,15 +15,18 @@ import type { ApiProductListResponse } from '@/lib/types/catalog';
 type SearchResultsProductBlockProps = {
   flatSearchParams: Record<string, string | undefined>;
   priceSliderMax: number;
+  filterLists: CatalogFilterLists;
 };
 
 /** Только выдача и пагинация — подвешивается отдельным Suspense, чтобы фильтры не размонтировались. */
 export async function SearchResultsProductBlock({
   flatSearchParams,
   priceSliderMax,
+  filterLists,
 }: SearchResultsProductBlockProps) {
   const state = parseSearchUrlState(flatSearchParams);
   const query = state.q;
+  const searchCategories = rootCategoriesSorted(filterLists.categories);
 
   let data: ApiProductListResponse | null = null;
   let error: string | null = null;
@@ -63,7 +70,13 @@ export async function SearchResultsProductBlock({
             <SearchResultsTable items={data.items} state={state} />
             <SearchMobileResults items={data.items} />
             <div id="search-filters" className="scroll-mt-28 lg:hidden">
-              <SearchMobileFiltersCollapse state={state} priceSliderMax={priceSliderMax} />
+              <SearchMobileFiltersCollapse
+                state={state}
+                priceSliderMax={priceSliderMax}
+                categories={searchCategories}
+                manufacturers={filterLists.manufacturers}
+                warehouseCities={filterLists.warehouseCities}
+              />
             </div>
             <SearchPagination state={state} total={data.total} />
           </>

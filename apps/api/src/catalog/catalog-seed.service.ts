@@ -6,6 +6,8 @@ import { Category } from './entities/category.entity';
 import { Manufacturer } from './entities/manufacturer.entity';
 import { Product } from './entities/product.entity';
 import { Supplier } from './entities/supplier.entity';
+import { PRODUCT_DETAIL_BY_SLUG } from './product-detail.extensions';
+import { SUPPLIER_DETAIL_BY_SLUG } from './supplier-detail.extensions';
 
 @Injectable()
 export class CatalogSeedService implements OnModuleInit {
@@ -53,6 +55,7 @@ export class CatalogSeedService implements OnModuleInit {
     const supplierEntities = await this.suppliers.save(
       SEED_SUPPLIERS.map((s) => this.suppliers.create(s)),
     );
+    await this.hydrateSupplierDetailsFromExtensions(supplierEntities);
     const supplierBySlug = new Map(supplierEntities.map((s) => [s.slug, s]));
 
     const categoryEntities = await this.categories.save(
@@ -88,8 +91,45 @@ export class CatalogSeedService implements OnModuleInit {
     });
 
     await this.products.save(rows);
+    await this.hydrateProductDetailsFromExtensions(rows);
 
     this.logger.log(`Catalog seed complete (${rows.length} products)`);
+  }
+
+  /** Расширенные поля карточки товара из демо-констант сидов — только в колонки БД. */
+  private async hydrateProductDetailsFromExtensions(entities: Product[]): Promise<void> {
+    for (const entity of entities) {
+      const ext = PRODUCT_DETAIL_BY_SLUG[entity.slug];
+      if (!ext) {
+        continue;
+      }
+      entity.description = ext.description ?? null;
+      entity.priceMaxDisplay = ext.priceMax ?? null;
+      entity.specificationsJson = ext.specifications ?? null;
+      entity.offersJson = ext.offers ?? null;
+      entity.supplierCardJson = ext.supplierCard ?? null;
+    }
+    await this.products.save(entities);
+  }
+
+  /** ИНН, контакты и филиалы из демо-расширений — в колонки БД для AdminJS и API. */
+  private async hydrateSupplierDetailsFromExtensions(entities: Supplier[]): Promise<void> {
+    for (const entity of entities) {
+      const ext = SUPPLIER_DETAIL_BY_SLUG[entity.slug];
+      if (!ext) {
+        continue;
+      }
+      entity.inn = ext.inn ?? null;
+      entity.website = ext.website ?? null;
+      entity.phone = ext.phone ?? null;
+      entity.email = ext.email ?? null;
+      entity.legalAddress = ext.legalAddress ?? null;
+      entity.contactPerson = ext.contactPerson ?? null;
+      entity.innSourcesLine = ext.innSourcesLine ?? null;
+      entity.description = ext.description ?? null;
+      entity.branchesJson = ext.branches ?? null;
+    }
+    await this.suppliers.save(entities);
   }
 
   private async clearCatalogTables(): Promise<void> {

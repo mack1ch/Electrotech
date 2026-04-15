@@ -92,6 +92,11 @@ export type ApiProductPriceFilterMeta = {
   priceMax: number;
 };
 
+/** Ответ GET /supplier-warehouse-cities — города филиалов для фильтров. */
+export type ApiSupplierWarehouseCitiesResponse = {
+  cities: string[];
+};
+
 export type ApiCategory = {
   id: string;
   slug: string;

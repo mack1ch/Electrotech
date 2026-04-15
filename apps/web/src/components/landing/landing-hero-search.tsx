@@ -4,11 +4,11 @@ import { CalendarOutlined, DownOutlined, SlidersOutlined } from '@ant-design/ico
 import { Button, Dropdown, Form, Input, InputNumber, Select, Slider } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@electrotech/ui';
+import type { CatalogFilterLists } from '@/lib/catalog/load-catalog-filter-options';
 import { fetchPublicApiJson } from '@/lib/api/public-api';
 import { SearchAllFiltersDrawer } from '@/components/search/search-filters-sidebar';
-import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { parseSearchUrlState, searchPath } from '@/lib/search/search-params';
 import type { ApiProductPriceFilterMeta } from '@/lib/types/catalog';
@@ -30,11 +30,6 @@ const AVAILABILITY_OPTIONS = [
   { value: 'on_order', label: 'Под заказ' },
   { value: 'expected', label: 'Ожидается поставка' },
 ] as const;
-
-const MANUFACTURER_OPTIONS = [
-  { value: '', label: 'Любой' },
-  ...SEARCH_FILTER_MANUFACTURERS.map((c) => ({ value: c.slug, label: c.label })),
-];
 
 type LandingSearchFormValues = {
   q: string;
@@ -85,23 +80,6 @@ function buildSearchStateFromForm(
   };
 }
 
-function chipHref(label: string, category?: string): string {
-  const p = new URLSearchParams();
-  if (category) {
-    p.set('category', category);
-  } else {
-    p.set('q', label);
-  }
-  return `/search?${p.toString()}`;
-}
-
-const chips: { label: string; href: string }[] = [
-  { label: 'Кабель', href: chipHref('Кабель', 'cable') },
-  { label: 'Трансформаторы', href: chipHref('Трансформаторы') },
-  { label: 'Автоматические выключатели', href: chipHref('Автоматические выключатели') },
-  { label: 'Контакторы', href: chipHref('Контакторы') },
-];
-
 function formatPriceRu(n: number): string {
   return Math.round(n)
     .toString()
@@ -119,7 +97,13 @@ function parseDigitsOnly(value: string | undefined): number {
   return Number.parseInt(digits, 10);
 }
 
-export function LandingHeroSearch() {
+export function LandingHeroSearch({
+  filterLists,
+  categoryChips,
+}: {
+  filterLists: CatalogFilterLists;
+  categoryChips: { label: string; href: string }[];
+}) {
   const router = useRouter();
   const [form] = Form.useForm<LandingSearchFormValues>();
   const [priceSliderMax, setPriceSliderMax] = useState(DEFAULT_PRICE_SLIDER_MAX);
@@ -131,6 +115,14 @@ export function LandingHeroSearch() {
     setFilterDrawerState(buildSearchStateFromForm(form.getFieldsValue(true), priceSliderMax));
     setAllFiltersOpen(true);
   }, [form, priceSliderMax]);
+
+  const manufacturerOptions = useMemo(
+    () => [
+      { value: '', label: 'Любой' },
+      ...filterLists.manufacturers.map((c) => ({ value: c.slug, label: c.name })),
+    ],
+    [filterLists.manufacturers],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -319,7 +311,7 @@ export function LandingHeroSearch() {
                     variant="borderless"
                     showSearch
                     optionFilterProp="label"
-                    options={[...MANUFACTURER_OPTIONS]}
+                    options={manufacturerOptions}
                     className={selectClassName}
                     popupMatchSelectWidth={false}
                     getPopupContainer={(trigger) => trigger.closest('form') ?? document.body}
@@ -452,7 +444,7 @@ export function LandingHeroSearch() {
 
       {/* Отдельно от карточки поиска: только белые кнопки на фоне страницы */}
       <div className="mt-2 flex w-full flex-wrap gap-2 lg:mt-3 lg:gap-3">
-        {chips.map((c, index) => (
+        {categoryChips.map((c, index) => (
           <Link
             key={c.href}
             href={c.href}
@@ -474,6 +466,7 @@ export function LandingHeroSearch() {
         onClose={() => setAllFiltersOpen(false)}
         state={filterDrawerState}
         priceSliderMax={priceSliderMax}
+        filterLists={filterLists}
       />
     </div>
   );

@@ -16,10 +16,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@electrotech/ui';
-import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
+import type { CatalogFilterLists } from '@/lib/catalog/load-catalog-filter-options';
 import type { SearchUrlState } from '@/lib/search/search-params';
 import { resetFiltersKeepQuery, searchPath } from '@/lib/search/search-params';
-import { SUPPLIER_WAREHOUSE_CITIES } from '@/lib/suppliers/supplier-warehouse-cities';
 
 const CAT_ALL = '__all__';
 const FILTER_DEBOUNCE_MS = 450;
@@ -236,10 +235,12 @@ function FilterFieldsManufacturer({
   form,
   schedulePush,
   itemClassName,
+  manufacturers,
 }: {
   form: FormInstance<FilterFormValues>;
   schedulePush: () => void;
   itemClassName: string;
+  manufacturers: CatalogFilterLists['manufacturers'];
 }) {
   const manufacturer = Form.useWatch('manufacturer', form) ?? CAT_ALL;
 
@@ -263,7 +264,7 @@ function FilterFieldsManufacturer({
       }
     >
       <div className="mt-2 flex flex-col gap-2">
-        {SEARCH_FILTER_MANUFACTURERS.map((c) => (
+        {manufacturers.map((c) => (
           <label key={c.slug} className={manufacturerRowClass}>
             <Checkbox
               checked={manufacturer === c.slug}
@@ -273,7 +274,7 @@ function FilterFieldsManufacturer({
                 schedulePush();
               }}
             />
-            <span className="select-none text-base font-normal leading-snug text-ink">{c.label}</span>
+            <span className="select-none text-base font-normal leading-snug text-ink">{c.name}</span>
           </label>
         ))}
       </div>
@@ -281,7 +282,13 @@ function FilterFieldsManufacturer({
   );
 }
 
-function FilterFieldsSupplierCity({ itemClassName }: { itemClassName: string }) {
+function FilterFieldsSupplierCity({
+  itemClassName,
+  warehouseCities,
+}: {
+  itemClassName: string;
+  warehouseCities: string[];
+}) {
   return (
     <Form.Item label="Город поставщика" className={itemClassName}>
       <div className="relative">
@@ -289,7 +296,7 @@ function FilterFieldsSupplierCity({ itemClassName }: { itemClassName: string }) 
           <Select
             allowClear
             placeholder="Любой"
-            options={SUPPLIER_WAREHOUSE_CITIES.map((city) => ({ value: city, label: city }))}
+            options={warehouseCities.map((city) => ({ value: city, label: city }))}
             className="!h-[50px] !w-full [&_.ant-select-selector]:!rounded-[4px] [&_.ant-select-selector]:!border-0 [&_.ant-select-selector]:!bg-[#f9fafb] [&_.ant-select-selector]:!px-4 [&_.ant-select-selection-item]:!text-base [&_.ant-select-selection-item]:!text-ink"
           />
         </Form.Item>
@@ -307,10 +314,14 @@ function FiltersFormCompact({
   form,
   schedulePush,
   priceSliderMax,
+  manufacturers,
+  warehouseCities,
 }: {
   form: FormInstance<FilterFormValues>;
   schedulePush: () => void;
   priceSliderMax: number;
+  manufacturers: CatalogFilterLists['manufacturers'];
+  warehouseCities: string[];
 }) {
   return (
     <Form<FilterFormValues>
@@ -328,8 +339,13 @@ function FiltersFormCompact({
         itemClassName="!mb-5"
         priceSliderMax={priceSliderMax}
       />
-      <FilterFieldsManufacturer form={form} schedulePush={schedulePush} itemClassName="!mb-5" />
-      <FilterFieldsSupplierCity itemClassName="!mb-0" />
+      <FilterFieldsManufacturer
+        form={form}
+        schedulePush={schedulePush}
+        itemClassName="!mb-5"
+        manufacturers={manufacturers}
+      />
+      <FilterFieldsSupplierCity itemClassName="!mb-0" warehouseCities={warehouseCities} />
     </Form>
   );
 }
@@ -339,10 +355,14 @@ function FiltersFormFull({
   form,
   schedulePush,
   priceSliderMax,
+  manufacturers,
+  warehouseCities,
 }: {
   form: FormInstance<FilterFormValues>;
   schedulePush: () => void;
   priceSliderMax: number;
+  manufacturers: CatalogFilterLists['manufacturers'];
+  warehouseCities: string[];
 }) {
   return (
     <Form<FilterFormValues>
@@ -360,8 +380,13 @@ function FiltersFormFull({
         itemClassName="!mb-8"
         priceSliderMax={priceSliderMax}
       />
-      <FilterFieldsManufacturer form={form} schedulePush={schedulePush} itemClassName="!mb-8" />
-      <FilterFieldsSupplierCity itemClassName="!mb-0" />
+      <FilterFieldsManufacturer
+        form={form}
+        schedulePush={schedulePush}
+        itemClassName="!mb-8"
+        manufacturers={manufacturers}
+      />
+      <FilterFieldsSupplierCity itemClassName="!mb-0" warehouseCities={warehouseCities} />
     </Form>
   );
 }
@@ -370,10 +395,12 @@ function SearchFiltersSidebarInner({
   state,
   embedded,
   priceSliderMax,
+  filterLists,
 }: {
   state: SearchUrlState;
   embedded?: boolean;
   priceSliderMax: number;
+  filterLists: CatalogFilterLists;
 }) {
   const [compactForm] = Form.useForm<FilterFormValues>();
   const [fullForm] = Form.useForm<FilterFormValues>();
@@ -456,6 +483,8 @@ function SearchFiltersSidebarInner({
           form={compactForm}
           schedulePush={schedulePushWithStatus}
           priceSliderMax={priceSliderMax}
+          manufacturers={filterLists.manufacturers}
+          warehouseCities={filterLists.warehouseCities}
         />
 
         <div className="max-w-[277px] shrink-0 pt-1">
@@ -498,6 +527,8 @@ function SearchFiltersSidebarInner({
             form={fullForm}
             schedulePush={schedulePushWithStatus}
             priceSliderMax={priceSliderMax}
+            manufacturers={filterLists.manufacturers}
+            warehouseCities={filterLists.warehouseCities}
           />
         </Drawer>
       ) : null}
@@ -514,11 +545,13 @@ export function SearchAllFiltersDrawer({
   onClose,
   state,
   priceSliderMax,
+  filterLists,
 }: {
   open: boolean;
   onClose: () => void;
   state: SearchUrlState;
   priceSliderMax: number;
+  filterLists: CatalogFilterLists;
 }) {
   const [fullForm] = Form.useForm<FilterFormValues>();
   const [drawerMounted, setDrawerMounted] = useState(false);
@@ -583,7 +616,13 @@ export function SearchAllFiltersDrawer({
           Обновляем результаты...
         </div>
       ) : null}
-      <FiltersFormFull form={fullForm} schedulePush={schedulePushWithStatus} priceSliderMax={cap} />
+      <FiltersFormFull
+        form={fullForm}
+        schedulePush={schedulePushWithStatus}
+        priceSliderMax={cap}
+        manufacturers={filterLists.manufacturers}
+        warehouseCities={filterLists.warehouseCities}
+      />
     </Drawer>
   );
 }
@@ -592,21 +631,25 @@ export function SearchFiltersSidebar({
   state,
   embedded,
   priceSliderMax = DEFAULT_PRICE_SLIDER_MAX,
+  filterLists,
 }: {
   state: SearchUrlState;
   embedded?: boolean;
   /** Верхняя граница диапазона цен (из GET /product-price-filter-meta). */
   priceSliderMax?: number;
+  filterLists: CatalogFilterLists;
 }) {
   const cap = priceSliderMax > 0 ? Math.floor(priceSliderMax) : DEFAULT_PRICE_SLIDER_MAX;
 
   if (embedded) {
-    return <SearchFiltersSidebarInner state={state} embedded priceSliderMax={cap} />;
+    return (
+      <SearchFiltersSidebarInner state={state} embedded priceSliderMax={cap} filterLists={filterLists} />
+    );
   }
 
   return (
     <aside className="hidden w-full shrink-0 lg:sticky lg:top-6 lg:block lg:w-[281px] lg:self-start">
-      <SearchFiltersSidebarInner state={state} priceSliderMax={cap} />
+      <SearchFiltersSidebarInner state={state} priceSliderMax={cap} filterLists={filterLists} />
     </aside>
   );
 }
@@ -617,6 +660,7 @@ function serializeFilterKey(state: SearchUrlState): string {
     state.sort,
     state.supplier,
     state.supplierCity,
+    state.category,
     state.manufacturer,
     state.priceMin,
     state.priceMax,

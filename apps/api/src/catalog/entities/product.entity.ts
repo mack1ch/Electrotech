@@ -54,4 +54,21 @@ export class Product extends BaseEntity {
 
   @Column({ name: 'manufacturer_id', type: 'uuid', nullable: true })
   manufacturerId!: string | null;
+
+  /** Текст для карточки товара (из сидов / AdminJS). */
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
+
+  /** Верхняя граница цены в карточке (строка для UI), без связи с `price`. */
+  @Column({ name: 'price_max_display', type: 'varchar', length: 64, nullable: true })
+  priceMaxDisplay!: string | null;
+
+  @Column({ name: 'specifications_json', type: 'jsonb', nullable: true })
+  specificationsJson!: unknown | null;
+
+  @Column({ name: 'offers_json', type: 'jsonb', nullable: true })
+  offersJson!: unknown | null;
+
+  @Column({ name: 'supplier_card_json', type: 'jsonb', nullable: true })
+  supplierCardJson!: unknown | null;
 }

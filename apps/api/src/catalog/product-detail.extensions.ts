@@ -1,9 +1,7 @@
 /**
- * Расширенные поля карточки товара для GET /products/:slug (поверх БД).
+ * Расширенные поля карточки товара — источник для сидов в БД (`CatalogSeedService`).
+ * В рантайме API читает колонки `Product.*`, а не этот объект.
  * Макет: Figma «карточка товара — вид с таблицей» (0:3351).
- *
- * Web dev-мок: дублируйте `PRODUCT_DETAIL_BY_SLUG` в
- * `apps/web/src/lib/mocks/catalog-dev-mock.ts` → `PRODUCT_DETAIL_MOCK_EXT`.
  */
 export type ProductDetailSpec = { label: string; value: string };
 

@@ -4,7 +4,15 @@ import { Collapse } from 'antd';
 import type { SuppliersUrlState } from '@/lib/suppliers/suppliers-params';
 import { SuppliersFiltersSidebar } from '@/components/suppliers/suppliers-filters-sidebar';
 
-export function SuppliersMobileFiltersCollapse({ state }: { state: SuppliersUrlState }) {
+export function SuppliersMobileFiltersCollapse({
+  state,
+  categoryRoots,
+  warehouseCities,
+}: {
+  state: SuppliersUrlState;
+  categoryRoots: Array<{ slug: string; name: string }>;
+  warehouseCities: string[];
+}) {
   return (
     <Collapse
       bordered={false}
@@ -16,7 +24,12 @@ export function SuppliersMobileFiltersCollapse({ state }: { state: SuppliersUrlS
           label: <span className="text-base font-semibold leading-5 text-ink">Фильтры</span>,
           children: (
             <div className="-mx-4 -mb-4 border-t border-neutral-100">
-              <SuppliersFiltersSidebar state={state} embedded />
+              <SuppliersFiltersSidebar
+                state={state}
+                embedded
+                categoryRoots={categoryRoots}
+                warehouseCities={warehouseCities}
+              />
             </div>
           ),
         },

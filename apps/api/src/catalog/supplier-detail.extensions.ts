@@ -1,8 +1,7 @@
 /**
- * Расширенные поля карточки поставщика для GET /suppliers/:slug.
+ * Расширенные поля карточки поставщика — источник для сидов в БД (`CatalogSeedService`).
+ * В рантайме API отдаёт данные из колонок `Supplier`, а не этот объект.
  * Макеты: Figma «карточка поставщика» 0:5722 (desktop), 0:5820 (mobile).
- *
- * Web dev-мок: `apps/web/src/lib/mocks/catalog-dev-mock.ts` → `SUPPLIER_DETAIL_MOCK_EXT`.
  */
 export type SupplierBranchSeed = {
   city: string;

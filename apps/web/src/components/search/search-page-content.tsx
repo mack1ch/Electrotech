@@ -6,6 +6,7 @@ import { SearchQueryBar } from '@/components/search/search-query-bar';
 import { SearchResultsProductBlock } from '@/components/search/search-results-product-block';
 import { SearchSortControl } from '@/components/search/search-sort';
 import { fetchPublicApiJson } from '@/lib/api/public-api';
+import { loadCatalogFilterLists } from '@/lib/catalog/load-catalog-filter-options';
 import { parseSearchUrlState, serializeSearchState } from '@/lib/search/search-params';
 import type { ApiProductPriceFilterMeta } from '@/lib/types/catalog';
 
@@ -22,6 +23,7 @@ type SearchPageContentProps = {
 export async function SearchPageContent({ flatSearchParams }: SearchPageContentProps) {
   const state = parseSearchUrlState(flatSearchParams);
   let priceSliderMax = DEFAULT_PRICE_SLIDER_MAX;
+  const filterLists = await loadCatalogFilterLists();
 
   try {
     const meta = await fetchPublicApiJson<ApiProductPriceFilterMeta>('/product-price-filter-meta');
@@ -38,7 +40,7 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
   return (
     <div className="bg-[#f4f5f9] pb-16 pt-3 lg:pt-10">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-start lg:gap-4 lg:px-9">
-        <SearchFiltersSidebar state={state} priceSliderMax={priceSliderMax} />
+        <SearchFiltersSidebar state={state} priceSliderMax={priceSliderMax} filterLists={filterLists} />
 
         <div className="min-w-0 w-full flex-1">
           <div className="flex flex-col gap-2 lg:gap-1">
@@ -75,6 +77,7 @@ export async function SearchPageContent({ flatSearchParams }: SearchPageContentP
             <SearchResultsProductBlock
               flatSearchParams={flatSearchParams}
               priceSliderMax={priceSliderMax}
+              filterLists={filterLists}
             />
           </Suspense>
         </div>

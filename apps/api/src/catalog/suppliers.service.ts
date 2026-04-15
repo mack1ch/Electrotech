@@ -3,11 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ListSuppliersQueryDto } from './dto/list-suppliers.query.dto';
 import { Supplier } from './entities/supplier.entity';
-import {
-  SUPPLIER_DETAIL_BY_SLUG,
-  type SupplierBranchSeed,
-  type SupplierDetailExtension,
-} from './supplier-detail.extensions';
+import { supplierBranchesFromDb } from './supplier-branches.util';
+import type { SupplierBranchSeed } from './supplier-detail.extensions';
 
 export type SupplierListItem = {
   id: string;
@@ -33,18 +30,18 @@ export type SupplierDetailItem = SupplierListItem & {
 };
 
 function listItemFromSupplier(s: Supplier): SupplierListItem {
-  const ext = SUPPLIER_DETAIL_BY_SLUG[s.slug] ?? {};
-  const cities = [...new Set((ext.branches ?? []).map((b) => b.city))];
+  const branches = supplierBranchesFromDb(s);
+  const cities = [...new Set(branches.map((b) => b.city))];
   return {
     id: s.id,
     slug: s.slug,
     name: s.name,
-    inn: ext.inn ?? null,
+    inn: s.inn,
     warehouseCitiesLine: cities.length ? cities.join(', ') : null,
-    website: ext.website ?? null,
-    phone: ext.phone ?? null,
-    emailsLine: ext.email ?? null,
-    otherLine: ext.innSourcesLine ?? null,
+    website: s.website,
+    phone: s.phone,
+    emailsLine: s.email,
+    otherLine: s.innSourcesLine,
   };
 }
 
@@ -87,10 +84,9 @@ export class SuppliersService {
     let filtered = rows;
     if (warehouse) {
       const w = warehouse.toLowerCase();
-      filtered = rows.filter((s) => {
-        const ext = SUPPLIER_DETAIL_BY_SLUG[s.slug] ?? {};
-        return (ext.branches ?? []).some((b) => b.city.toLowerCase() === w);
-      });
+      filtered = rows.filter((s) =>
+        supplierBranchesFromDb(s).some((b) => b.city.toLowerCase() === w),
+      );
     }
 
     const total = filtered.length;
@@ -111,15 +107,26 @@ export class SuppliersService {
     if (!s) {
       return null;
     }
-    const ext: SupplierDetailExtension = SUPPLIER_DETAIL_BY_SLUG[slug] ?? {};
     return {
       ...listItemFromSupplier(s),
-      legalAddress: ext.legalAddress ?? null,
-      innSourcesLine: ext.innSourcesLine ?? null,
-      contactPerson: ext.contactPerson ?? null,
-      email: ext.email ?? null,
-      branches: ext.branches ?? [],
-      description: ext.description ?? null,
+      legalAddress: s.legalAddress,
+      innSourcesLine: s.innSourcesLine,
+      contactPerson: s.contactPerson,
+      email: s.email,
+      branches: supplierBranchesFromDb(s),
+      description: s.description,
     };
+  }
+
+  /** Уникальные города филиалов из БД — для фильтров витрины. */
+  async listWarehouseCities(): Promise<string[]> {
+    const rows = await this.suppliers.find();
+    const set = new Set<string>();
+    for (const s of rows) {
+      for (const b of supplierBranchesFromDb(s)) {
+        set.add(b.city);
+      }
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'ru'));
   }
 }

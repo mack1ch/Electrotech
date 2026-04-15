@@ -44,6 +44,12 @@ export class CatalogController {
     return this.manufacturers.listAll();
   }
 
+  @Get('supplier-warehouse-cities')
+  async listSupplierWarehouseCities() {
+    const cities = await this.suppliers.listWarehouseCities();
+    return { cities };
+  }
+
   @Get('suppliers')
   listSuppliers(@Query() query: ListSuppliersQueryDto) {
     return this.suppliers.list(query);

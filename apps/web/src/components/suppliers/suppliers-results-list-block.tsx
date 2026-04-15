@@ -10,10 +10,16 @@ import type { ApiSupplierListResponse } from '@/lib/types/catalog';
 
 type SuppliersResultsListBlockProps = {
   flatSearchParams: Record<string, string | undefined>;
+  categoryRoots: Array<{ slug: string; name: string }>;
+  warehouseCities: string[];
 };
 
 /** Список поставщиков и пагинация — отдельный Suspense, боковая панель фильтров не пересоздаётся. */
-export async function SuppliersResultsListBlock({ flatSearchParams }: SuppliersResultsListBlockProps) {
+export async function SuppliersResultsListBlock({
+  flatSearchParams,
+  categoryRoots,
+  warehouseCities,
+}: SuppliersResultsListBlockProps) {
   const state = parseSuppliersUrlState(flatSearchParams);
   const query = state.q;
 
@@ -55,7 +61,11 @@ export async function SuppliersResultsListBlock({ flatSearchParams }: SuppliersR
             <SuppliersResultsTable items={data.items} state={state} />
             <SuppliersMobileResults items={data.items} />
             <div id="suppliers-filters" className="scroll-mt-28 lg:hidden">
-              <SuppliersMobileFiltersCollapse state={state} />
+              <SuppliersMobileFiltersCollapse
+                state={state}
+                categoryRoots={categoryRoots}
+                warehouseCities={warehouseCities}
+              />
             </div>
             <SuppliersPagination state={state} total={data.total} />
           </>

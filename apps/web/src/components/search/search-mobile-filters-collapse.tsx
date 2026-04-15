@@ -9,8 +9,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LoaderCircle, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@electrotech/ui';
-import { SEARCH_PRODUCT_CATEGORIES } from '@/lib/search/filter-categories';
-import { SEARCH_FILTER_MANUFACTURERS } from '@/lib/search/filter-manufacturers';
 import { resetFiltersKeepQuery, searchPath, type SearchUrlState } from '@/lib/search/search-params';
 import { useNavigationPending } from '@/lib/ui/use-navigation-pending';
 
@@ -28,9 +26,15 @@ function toNum(raw: string, fallback: number): number {
 export function SearchMobileFiltersCollapse({
   state,
   priceSliderMax,
+  categories,
+  manufacturers,
+  warehouseCities,
 }: {
   state: SearchUrlState;
   priceSliderMax: number;
+  categories: Array<{ slug: string; name: string }>;
+  manufacturers: Array<{ slug: string; name: string }>;
+  warehouseCities: string[];
 }) {
   const router = useRouter();
   const { runNavigation, isPending } = useNavigationPending();
@@ -52,14 +56,14 @@ export function SearchMobileFiltersCollapse({
   );
 
   const taxonomyCategoryLabel = useMemo(() => {
-    const hit = SEARCH_PRODUCT_CATEGORIES.find((c) => c.slug === state.category);
-    return hit?.label ?? '';
-  }, [state.category]);
+    const hit = categories.find((c) => c.slug === state.category);
+    return hit?.name ?? '';
+  }, [categories, state.category]);
 
   const manufacturerLabel = useMemo(() => {
-    const hit = SEARCH_FILTER_MANUFACTURERS.find((c) => c.slug === state.manufacturer);
-    return hit?.label ?? '';
-  }, [state.manufacturer]);
+    const hit = manufacturers.find((c) => c.slug === state.manufacturer);
+    return hit?.name ?? '';
+  }, [manufacturers, state.manufacturer]);
 
   const chips = useMemo<MobileFilterChip[]>(() => {
     const result: MobileFilterChip[] = [];
@@ -82,6 +86,13 @@ export function SearchMobileFiltersCollapse({
         key: 'manufacturer',
         label: manufacturerLabel,
         onRemove: () => pushPatch({ manufacturer: '' }),
+      });
+    }
+    if (state.supplierCity) {
+      result.push({
+        key: 'supplierCity',
+        label: state.supplierCity,
+        onRemove: () => pushPatch({ supplierCity: '' }),
       });
     }
     if (state.availability) {
@@ -107,7 +118,7 @@ export function SearchMobileFiltersCollapse({
     return result;
   }, [taxonomyCategoryLabel, manufacturerLabel, pushPatch, state]);
 
-  const categories = showAllCategories ? SEARCH_PRODUCT_CATEGORIES : SEARCH_PRODUCT_CATEGORIES.slice(0, 4);
+  const categoriesShown = showAllCategories ? categories : categories.slice(0, 4);
   const priceMin = Math.max(0, toNum(state.priceMin, 0));
   const priceMax = Math.min(cap, Math.max(priceMin, toNum(state.priceMax, cap)));
 
@@ -179,7 +190,7 @@ export function SearchMobileFiltersCollapse({
                 >
                   Все категории
                 </button>
-                {categories.map((category) => {
+                {categoriesShown.map((category) => {
                   const active = state.category === category.slug;
                   return (
                     <button
@@ -191,18 +202,20 @@ export function SearchMobileFiltersCollapse({
                         active ? 'bg-[#e5efff] font-semibold text-brand' : 'text-[#0a0a0a]',
                       )}
                     >
-                      <span className="whitespace-normal leading-[17px]">{category.label}</span>
+                      <span className="whitespace-normal leading-[17px]">{category.name}</span>
                       <DownOutlined className="-rotate-90 text-[12px]" />
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={() => setShowAllCategories((prev) => !prev)}
-                  className="rounded px-4 py-1 text-sm text-brand transition-colors hover:text-[#1f3d68] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
-                >
-                  {showAllCategories ? 'Скрыть категории' : 'Больше категорий'}
-                </button>
+                {categories.length > 4 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllCategories((prev) => !prev)}
+                    className="rounded px-4 py-1 text-sm text-brand transition-colors hover:text-[#1f3d68] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-1"
+                  >
+                    {showAllCategories ? 'Скрыть категории' : 'Больше категорий'}
+                  </button>
+                ) : null}
               </div>
             </div>
 
@@ -285,9 +298,11 @@ export function SearchMobileFiltersCollapse({
               <div>
                 <div className="mb-2 text-base font-semibold text-[#0a0a0a]">Расположение склада</div>
                 <Select
-                  disabled
-                  value=""
-                  options={[{ value: '', label: 'Любое' }]}
+                  allowClear
+                  placeholder="Любое"
+                  value={state.supplierCity || undefined}
+                  options={warehouseCities.map((city) => ({ value: city, label: city }))}
+                  onChange={(v) => pushPatch({ supplierCity: typeof v === 'string' ? v : '', page: 1 })}
                   className="!h-[50px] !w-full [&_.ant-select-selector]:!rounded-[4px] [&_.ant-select-selector]:!border-0 [&_.ant-select-selector]:!bg-[#f9fafb]"
                   suffixIcon={<MapPin className="size-5 text-[#264b82]" />}
                 />
@@ -306,7 +321,7 @@ export function SearchMobileFiltersCollapse({
                 </button>
               </div>
               <div className="space-y-2">
-                {SEARCH_FILTER_MANUFACTURERS.map((m) => (
+                {manufacturers.map((m) => (
                   <label
                     key={m.slug}
                     className="flex min-h-[22px] cursor-pointer items-center gap-2 text-base text-[#0a0a0a] [&_.ant-checkbox]:top-0 [&_.ant-checkbox-inner]:h-4 [&_.ant-checkbox-inner]:w-4 [&_.ant-checkbox-inner]:rounded-[2.5px]"
@@ -318,7 +333,7 @@ export function SearchMobileFiltersCollapse({
                         pushPatch({ manufacturer: e.target.checked ? m.slug : '', page: 1 })
                       }
                     />
-                    <span className="select-none leading-snug">{m.label}</span>
+                    <span className="select-none leading-snug">{m.name}</span>
                   </label>
                 ))}
               </div>

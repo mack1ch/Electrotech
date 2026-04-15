@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { loadCatalogFilterLists, rootCategoriesSorted } from '@/lib/catalog/load-catalog-filter-options';
 import { landingAssets } from './assets';
 import { LandingAbout } from './landing-about';
 import { LandingFaq } from './landing-faq';
@@ -11,7 +12,14 @@ import { LandingSuppliers } from './landing-suppliers';
 const HERO_DECOR_WIDTH = 1581;
 const HERO_DECOR_HEIGHT = 1976;
 
-export function LandingPage() {
+export async function LandingPage() {
+  const filterLists = await loadCatalogFilterLists();
+  const roots = rootCategoriesSorted(filterLists.categories);
+  const categoryChips = roots.map((c) => ({
+    label: c.name,
+    href: `/search?${new URLSearchParams({ category: c.slug }).toString()}`,
+  }));
+
   return (
     <div className="min-h-screen bg-[#f4f5f9] text-[#0a0a0a] antialiased">
       <div className="relative min-h-[460px] overflow-hidden lg:min-h-[504px]">
@@ -54,7 +62,7 @@ export function LandingPage() {
       </div>
 
       <div className="relative z-10 -mt-[126px] px-0 pb-12 sm:-mt-[118px] lg:-mt-[108px] lg:pb-20">
-        <LandingHeroSearch />
+        <LandingHeroSearch filterLists={filterLists} categoryChips={categoryChips} />
       </div>
 
       <LandingSuppliers />
